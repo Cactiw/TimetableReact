@@ -90,7 +90,7 @@ function HomeScreen() {
                     renderPairCell(item)
                 )}
             />
-            <StatusBar style="auto"/>
+            {/*<StatusBar style="auto"/>*/}
         </View>
     )
 }
@@ -100,7 +100,7 @@ function DetailScreen() {
     return (
         <View style={styles.container}>
             <Text>This is the details screen</Text>
-            <StatusBar style="auto"/>
+            {/*<StatusBar style="auto"/>*/}
         </View>
     )
 }
@@ -116,11 +116,13 @@ function Pair() {
 
 export default function App() {
     return (
+
         <NavigationContainer>
-            <Tab.Navigator initialRouteName="Home">
+            <Tab.Navigator initialRouteName="Home" screenOptions={{headerShown: false}}>
                 <Tab.Screen name="Home" component={HomeScreen}/>
                 <Tab.Screen name="Details" component={DetailScreen}/>
             </Tab.Navigator>
+            <StatusBar hidden/>
         </NavigationContainer>
     );
 }
@@ -156,7 +158,7 @@ const styles = StyleSheet.create({
         margin: 10,
         marginLeft: 0,
         width: 1,
-        height: '100%',
+        height: '80%',
         backgroundColor: Colors.black
     },
     pairName: {
