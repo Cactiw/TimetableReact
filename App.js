@@ -1,22 +1,39 @@
 import {StatusBar} from 'expo-status-bar';
 import React from 'react';
-import {StyleSheet, Text, View, FlatList} from 'react-native';
+import {StyleSheet, Text, View, FlatList, Button, Image} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import {Divider} from 'react-native-elements';
 
 
 import {createMaterialBottomTabNavigator} from '@react-navigation/material-bottom-tabs';
+import {createStackNavigator} from '@react-navigation/stack';
 import {useEffect, useState} from "react";
-import {Colors} from "react-native-paper";
+import {Colors, IconButton} from "react-native-paper";
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DropShadow from "react-native-drop-shadow";
 
 import {serverURL} from "./config"
+import StackNavigator from "@react-navigation/stack/src/navigators/createStackNavigator";
+
+
+const MONTH_NAMES = [
+    "января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"
+]
+
+Date.prototype.addDays = function(days) {
+    let date = new Date(this.valueOf());
+    console.log(days)
+    date.setDate(date.getDate() + days);
+    console.log("Returned " + date.toDateString())
+    return date;
+}
 
 
 function HomeScreen() {
     const [pairsData, setPairsData] = useState([]);
+    const [weeksText, setWeeksText] = useState("И снова третье сентября");
+    const [currentMonday, setCurrentMonday] = useState(getMonday(new Date()));
 
     useEffect(() => {
         loadPairsFromStorage().then(() => {
@@ -24,6 +41,7 @@ function HomeScreen() {
                 fetchPairsData()
             }
         )
+        updateWeekText()
     }, []);
 
 
@@ -80,9 +98,37 @@ function HomeScreen() {
         )
     }
 
+    function getMonday(d) {
+        d = new Date(d);
+        let day = d.getDay(),
+            diff = d.getDate() - day + (day === 0 ? -6:1); // adjust when day is sunday
+        return new Date(d.setDate(diff));
+    }
+
+    function updateWeekText() {
+        console.log(currentMonday)
+        let endWeek = currentMonday.addDays(6)
+        setWeeksText(currentMonday.getDate() + " " + MONTH_NAMES[currentMonday.getMonth()] + "  —  " +
+            endWeek.getDate() + " " + MONTH_NAMES[endWeek.getMonth()])
+    }
+
+    useEffect(() => updateWeekText(), [currentMonday])
+
+    async function weekLeftArrowClicked() {
+        await setCurrentMonday(currentMonday.addDays(-7))
+    }
+
+    async function weekRightArrowClicked() {
+        await setCurrentMonday(currentMonday.addDays(7))
+    }
+
     return (
         <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-            <Text>Open up App.js to start working on your app!</Text>
+            <View style={styles.horizontalContainer}>
+                <IconButton icon={require("./assets/back_arrow.png")} onPress={weekLeftArrowClicked}/>
+                <Text style={styles.weekInfoText}>{weeksText}</Text>
+                <IconButton icon={require("./assets/forward_arrow.png")} onPress={weekRightArrowClicked}/>
+            </View>
             <FlatList
                 data={pairsData}
                 keyExtractor={({id}, index) => id.toString()}
@@ -107,10 +153,24 @@ function DetailScreen() {
 
 
 const Tab = createMaterialBottomTabNavigator();
+const Stack = createStackNavigator();
 
 
-function Pair() {
+function HomeHeader() {
+    return (
+        <View style={styles.container}>
+            <Text style={styles.header}>Расписание</Text>
+        </View>
+    )
+}
 
+function HomeWithHeader() {
+    return (
+            <Stack.Navigator>
+                <Stack.Screen name="Home" component={HomeScreen}
+                              options={{headerTitle: props => <HomeHeader {...props} />}}/>
+            </Stack.Navigator>
+    )
 }
 
 
@@ -119,7 +179,7 @@ export default function App() {
 
         <NavigationContainer>
             <Tab.Navigator initialRouteName="Home" screenOptions={{headerShown: false}}>
-                <Tab.Screen name="Home" component={HomeScreen}/>
+                <Tab.Screen name="Home" component={HomeWithHeader}/>
                 <Tab.Screen name="Details" component={DetailScreen}/>
             </Tab.Navigator>
             <StatusBar hidden/>
@@ -133,6 +193,20 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         alignItems: 'center',
         justifyContent: 'center',
+    },
+    header: {
+        fontWeight: 'bold',
+        fontSize: 18
+    },
+    weekInfoText: {
+        fontSize: 16
+    },
+    horizontalContainer: {
+        justifyContent: 'center',
+        alignItems: 'center', // Centered horizontally
+        alignSelf: 'stretch',
+        textAlign: 'center',
+        flexDirection: 'row'
     },
     pairCell: {
         // justifyContent: 'center', //Centered vertically
