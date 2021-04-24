@@ -3,6 +3,7 @@ import React from 'react';
 import {StyleSheet, Text, View, FlatList, Button, Image} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import {Divider} from 'react-native-elements';
+import SwipeRender from "react-native-swipe-render";
 
 
 import {createMaterialBottomTabNavigator} from '@react-navigation/material-bottom-tabs';
@@ -14,14 +15,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import DropShadow from "react-native-drop-shadow";
 
 import {serverURL} from "./config"
-import StackNavigator from "@react-navigation/stack/src/navigators/createStackNavigator";
 
 
 const MONTH_NAMES = [
     "января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"
 ]
+const DAY_NAMES = [
+    "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье"
+]
 
-Date.prototype.addDays = function(days) {
+Date.prototype.addDays = function (days) {
     let date = new Date(this.valueOf());
     console.log(days)
     date.setDate(date.getDate() + days);
@@ -31,9 +34,13 @@ Date.prototype.addDays = function(days) {
 
 
 function HomeScreen() {
-    const [pairsData, setPairsData] = useState([]);
+    const [pairsData, setPairsData] = useState({});
     const [weeksText, setWeeksText] = useState("И снова третье сентября");
     const [currentMonday, setCurrentMonday] = useState(getMonday(new Date()));
+
+    const daysOfWeek = [
+        0, 1, 2, 3, 4, 5
+    ]
 
     useEffect(() => {
         loadPairsFromStorage().then(() => {
@@ -47,10 +54,14 @@ function HomeScreen() {
 
     function fetchPairsData() {
         console.log("Fetching pairs data!")
-        fetch(serverURL + 'pairs/by_group/3').then(
+        fetch(serverURL + 'pairs/by_group/47').then(
             (response) => response.json()).then((json) => {
             console.log(json)
-            setPairsData(json)
+            let pairsByDayData = {}
+            for (let dayIndex in daysOfWeek) {
+                pairsByDayData[dayIndex] = json.filter(pair => pair["day_of_week"].toString() === dayIndex.toString())
+            }
+            setPairsData(pairsByDayData)
             savePairsToStorage(json).then()
         }).catch((error) => console.error(error))
     }
@@ -98,10 +109,27 @@ function HomeScreen() {
         )
     }
 
+    function renderPairsPane({item, index}) {
+        return (
+            <View>
+                <View>
+                    <Text>{DAY_NAMES[item]}</Text>
+                </View>
+                <FlatList
+                    data={pairsData[item]}
+                    keyExtractor={({id}, index) => id.toString()}
+                    renderItem={({item}) => (
+                        renderPairCell(item)
+                    )}
+                />
+            </View>
+        )
+    }
+
     function getMonday(d) {
         d = new Date(d);
         let day = d.getDay(),
-            diff = d.getDate() - day + (day === 0 ? -6:1); // adjust when day is sunday
+            diff = d.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
         return new Date(d.setDate(diff));
     }
 
@@ -129,14 +157,9 @@ function HomeScreen() {
                 <Text style={styles.weekInfoText}>{weeksText}</Text>
                 <IconButton icon={require("./assets/forward_arrow.png")} onPress={weekRightArrowClicked}/>
             </View>
-            <FlatList
-                data={pairsData}
-                keyExtractor={({id}, index) => id.toString()}
-                renderItem={({item}) => (
-                    renderPairCell(item)
-                )}
-            />
-            {/*<StatusBar style="auto"/>*/}
+            <SwipeRender data={daysOfWeek} renderItem={renderPairsPane} loop={true} horizontal={true} removeClippedSubviews={false}>
+            </SwipeRender>
+            <StatusBar style="auto"/>
         </View>
     )
 }
@@ -166,10 +189,10 @@ function HomeHeader() {
 
 function HomeWithHeader() {
     return (
-            <Stack.Navigator>
-                <Stack.Screen name="Home" component={HomeScreen}
-                              options={{headerTitle: props => <HomeHeader {...props} />}}/>
-            </Stack.Navigator>
+        <Stack.Navigator>
+            <Stack.Screen name="Home" component={HomeScreen}
+                          options={{headerTitle: props => <HomeHeader {...props} />}}/>
+        </Stack.Navigator>
     )
 }
 
