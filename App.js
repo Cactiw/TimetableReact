@@ -91,7 +91,7 @@ function HomeScreen() {
                         height: 0,
                     },
                     shadowOpacity: 1,
-                    shadowRadius: 3,
+                    shadowRadius: 2,
                 }}
             >
                 <View style={styles.pairCell}>
@@ -111,9 +111,9 @@ function HomeScreen() {
 
     function renderPairsPane({item, index}) {
         return (
-            <View>
-                <View>
-                    <Text>{DAY_NAMES[item]}</Text>
+            <View style={styles.pairsPane}>
+                <View style={styles.dayNameCell}>
+                    <Text style={styles.dayNameHeader}>{DAY_NAMES[item]}</Text>
                 </View>
                 <FlatList
                     data={pairsData[item]}
@@ -152,12 +152,13 @@ function HomeScreen() {
 
     return (
         <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-            <View style={styles.horizontalContainer}>
+            <View style={[styles.horizontalContainer, styles.marginTop5]}>
                 <IconButton icon={require("./assets/back_arrow.png")} onPress={weekLeftArrowClicked}/>
                 <Text style={styles.weekInfoText}>{weeksText}</Text>
                 <IconButton icon={require("./assets/forward_arrow.png")} onPress={weekRightArrowClicked}/>
             </View>
-            <SwipeRender data={daysOfWeek} renderItem={renderPairsPane} loop={true} horizontal={true} removeClippedSubviews={false}>
+            <SwipeRender data={daysOfWeek} renderItem={renderPairsPane} loop={true} horizontal={true}
+                         removeClippedSubviews={false}>
             </SwipeRender>
             <StatusBar style="auto"/>
         </View>
@@ -224,12 +225,46 @@ const styles = StyleSheet.create({
     weekInfoText: {
         fontSize: 16
     },
+    dayNameCell: {
+        justifyContent: 'center', //Centered vertically
+        alignItems: 'center', // Centered horizontally
+        // backgroundColor: Colors.red50,
+        backgroundColor: Colors.grey200,
+        alignSelf: 'stretch',
+        textAlign: 'center',
+        flexDirection: 'row',
+        // margin: 10,
+        padding: 10,
+
+        borderRadius: 10,
+        borderWidth: 1,
+    },
+    dayNameHeader: {
+        fontWeight: "bold",
+        fontSize: 16,
+    },
     horizontalContainer: {
         justifyContent: 'center',
         alignItems: 'center', // Centered horizontally
         alignSelf: 'stretch',
         textAlign: 'center',
         flexDirection: 'row'
+    },
+    marginTop5: {
+        marginTop: "5%"
+    },
+    pairsPane: {
+        // width: "85%",
+        // flex: 0.5,
+        marginTop: "5%",
+        marginBottom: 0,
+        marginLeft: "10%",
+        marginRight: "10%",
+        // alignItems: 'center',
+        justifyContent: 'center',
+        alignSelf: 'stretch',
+        textAlign: 'center',
+        flexDirection: 'column'
     },
     pairCell: {
         // justifyContent: 'center', //Centered vertically
@@ -239,8 +274,11 @@ const styles = StyleSheet.create({
         alignSelf: 'stretch',
         textAlign: 'center',
         flexDirection: 'row',
-        margin: 10,
+        flexWrap: 'wrap',
+        margin: 0.5,
         padding: 10,
+        // width: "match_parent",
+        // width: "88%",
 
         borderRadius: 10,
         borderWidth: 1,
@@ -250,16 +288,24 @@ const styles = StyleSheet.create({
     pairLeftContainer: {
         margin: 10
     },
-    pairCenterContainer: {},
+    centerText: {
+        textAlign: 'center',
+    },
+    pairCenterContainer: {
+        justifyContent: 'center',
+        textAlign: 'center',
+        flex: 1,
+    },
     pairCellDivider: {
         margin: 10,
         marginLeft: 0,
         width: 1,
         height: '80%',
-        backgroundColor: Colors.black
+        backgroundColor: Colors.black,
     },
     pairName: {
         fontWeight: 'bold',
         fontSize: 16,
+        // textAlign: 'center',
     }
 });
