@@ -90,7 +90,7 @@ function HomeScreen() {
                         width: 0,
                         height: 0,
                     },
-                    shadowOpacity: 1,
+                    shadowOpacity: 0,
                     shadowRadius: 2,
                 }}
             >
@@ -236,8 +236,8 @@ const styles = StyleSheet.create({
         // margin: 10,
         padding: 10,
 
-        borderRadius: 10,
-        borderWidth: 1,
+        // borderRadius: 10,
+        // borderWidth: 1,
     },
     dayNameHeader: {
         fontWeight: "bold",
@@ -264,7 +264,11 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignSelf: 'stretch',
         textAlign: 'center',
-        flexDirection: 'column'
+        flexDirection: 'column',
+
+        borderRadius: 10,
+        borderWidth: 1,
+        overflow: 'hidden',
     },
     pairCell: {
         // justifyContent: 'center', //Centered vertically
@@ -280,8 +284,8 @@ const styles = StyleSheet.create({
         // width: "match_parent",
         // width: "88%",
 
-        borderRadius: 10,
-        borderWidth: 1,
+        // borderRadius: 10,
+        // borderWidth: 1,
 
         // https://ethercreative.github.io/react-native-shadow-generator/
     },
