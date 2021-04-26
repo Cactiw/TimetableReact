@@ -104,6 +104,9 @@ function HomeScreen() {
                         <Text style={styles.pairName}>{pairItem.subject}</Text>
                         <Text>{pairItem.teacher.fullname}</Text>
                     </View>
+                    <View>
+                        <Text>{pairItem.auditorium.name}</Text>
+                    </View>
                 </View>
             </DropShadow>
         )
