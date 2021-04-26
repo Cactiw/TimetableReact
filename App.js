@@ -1,6 +1,6 @@
 import {StatusBar} from 'expo-status-bar';
 import React from 'react';
-import {StyleSheet, Text, View, FlatList, Button, Image} from 'react-native';
+import {StyleSheet, Text, View, FlatList, Button, Image, Pressable} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import {Divider} from 'react-native-elements';
 import SwipeRender from "react-native-swipe-render";
@@ -15,6 +15,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import DropShadow from "react-native-drop-shadow";
 
 import {serverURL} from "./config"
+
+import {globalStyles} from "./styles/global"
+import {pairView} from "./components/pairView"
 
 
 const MONTH_NAMES = [
@@ -33,7 +36,7 @@ Date.prototype.addDays = function (days) {
 }
 
 
-function HomeScreen() {
+function HomeScreen(props) {
     const [pairsData, setPairsData] = useState({});
     const [weeksText, setWeeksText] = useState("И снова третье сентября");
     const [currentMonday, setCurrentMonday] = useState(getMonday(new Date()));
@@ -41,6 +44,8 @@ function HomeScreen() {
     const daysOfWeek = [
         0, 1, 2, 3, 4, 5
     ]
+
+    const navigation = props.navigation;
 
     useEffect(() => {
         loadPairsFromStorage().then(() => {
@@ -79,6 +84,13 @@ function HomeScreen() {
         }
     }
 
+    function onPairCellPress(event, item) {
+        navigation.navigate('PairView', {
+            pairItem: item,
+            pairDate: null
+        })
+    }
+
     function renderPairCell(pairItem) {
         let beginDate = new Date(pairItem.begin_time);
         let endDate = new Date(pairItem.end_time);
@@ -94,20 +106,22 @@ function HomeScreen() {
                     shadowRadius: 2,
                 }}
             >
-                <View style={styles.pairCell}>
-                    <View style={styles.pairLeftContainer}>
-                        <Text>{beginDate.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}</Text>
-                        <Text>{endDate.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}</Text>
+                <Pressable onPress={e => onPairCellPress(e, pairItem)}>
+                    <View style={styles.pairCell}>
+                        <View style={styles.pairLeftContainer}>
+                            <Text>{pairItem.begin_clear_time}</Text>
+                            <Text>{pairItem.end_clear_time}</Text>
+                        </View>
+                        <Divider style={styles.pairCellDivider}/>
+                        <View style={styles.pairCenterContainer}>
+                            <Text style={styles.pairName}>{pairItem.subject}</Text>
+                            <Text>{pairItem.teacher.fullname}</Text>
+                        </View>
+                        <View>
+                            <Text>{pairItem.auditorium.name}</Text>
+                        </View>
                     </View>
-                    <Divider style={styles.pairCellDivider}/>
-                    <View style={styles.pairCenterContainer}>
-                        <Text style={styles.pairName}>{pairItem.subject}</Text>
-                        <Text>{pairItem.teacher.fullname}</Text>
-                    </View>
-                    <View>
-                        <Text>{pairItem.auditorium.name}</Text>
-                    </View>
-                </View>
+                </Pressable>
             </DropShadow>
         )
     }
@@ -155,7 +169,7 @@ function HomeScreen() {
 
     return (
         <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-            <View style={[styles.horizontalContainer, styles.marginTop5]}>
+            <View style={[globalStyles.horizontalContainer, globalStyles.marginTop5]}>
                 <IconButton icon={require("./assets/back_arrow.png")} onPress={weekLeftArrowClicked}/>
                 <Text style={styles.weekInfoText}>{weeksText}</Text>
                 <IconButton icon={require("./assets/forward_arrow.png")} onPress={weekRightArrowClicked}/>
@@ -181,6 +195,7 @@ function DetailScreen() {
 
 const Tab = createMaterialBottomTabNavigator();
 const Stack = createStackNavigator();
+const HomeStack = createStackNavigator();
 
 
 function HomeHeader() {
@@ -193,9 +208,11 @@ function HomeHeader() {
 
 function HomeWithHeader() {
     return (
-        <Stack.Navigator>
-            <Stack.Screen name="Home" component={HomeScreen}
-                          options={{headerTitle: props => <HomeHeader {...props} />}}/>
+        <Stack.Navigator mode={"modal"}>
+            <Stack.Screen name="Home" options={{headerTitle: props => <HomeHeader {...props} />}}>
+                {props => <HomeScreen {...props}/>}
+            </Stack.Screen>
+            <Stack.Screen name={"PairView"} component={pairView}/>
         </Stack.Navigator>
     )
 }
@@ -246,16 +263,7 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
         fontSize: 16,
     },
-    horizontalContainer: {
-        justifyContent: 'center',
-        alignItems: 'center', // Centered horizontally
-        alignSelf: 'stretch',
-        textAlign: 'center',
-        flexDirection: 'row'
-    },
-    marginTop5: {
-        marginTop: "5%"
-    },
+
     pairsPane: {
         // width: "85%",
         // flex: 0.5,
