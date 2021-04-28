@@ -133,10 +133,10 @@ function HomeScreen(props) {
                         <Divider style={styles.pairCellDivider}/>
                         <View style={styles.pairCenterContainer}>
                             <Text style={styles.pairName}>{pairItem.subject}</Text>
-                            <Text>{pairItem.teacher ? pairItem.teacher.fullname : ""}</Text>
+                            {pairItem.teacher && <Text>{pairItem.teacher ? pairItem.teacher.fullname : ""}</Text>}
                         </View>
                         <View>
-                            <Text>{pairItem.auditorium ? pairItem.auditorium.name : ""}</Text>
+                            {pairItem.auditorium && <Text>{pairItem.auditorium ? pairItem.auditorium.name : ""}</Text>}
                         </View>
                     </View>
                 </Pressable>
