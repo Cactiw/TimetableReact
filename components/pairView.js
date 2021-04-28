@@ -12,7 +12,7 @@ export function pairView({route, navigation}) {
                 <ImageBackground source={require("../assets/copybook_1.jpg")} style={styles.image}>
                     <View style={styles.pairHeaderContainer}>
                         <Text style={[styles.pairTime, styles.pairHeaderMargin]}>{pairItem.begin_clear_time} — {pairItem.end_clear_time}</Text>
-                        <Text style={[styles.pairHeaderType, styles.pairHeaderMargin]}>Занятие</Text>
+                        <Text style={[styles.pairHeaderType, styles.pairHeaderMargin]}>{pairItem.group.type.name}</Text>
                         <Text style={[styles.pairHeaderSubject, styles.pairHeaderMargin]}>{pairItem.subject}</Text>
                     </View>
                 </ImageBackground>
@@ -20,12 +20,12 @@ export function pairView({route, navigation}) {
             <View>
                 <View style={styles.pairDetailsItem}>
                     <Text style={styles.pairDetailsHeader}>Аудитория</Text>
-                    <Text style={styles.pairDetailsText}>{pairItem.auditorium.name}</Text>
+                    <Text style={styles.pairDetailsText}>{pairItem.auditorium ? pairItem.auditorium.name : ""}</Text>
                 </View>
                 <Divider/>
                 <View style={styles.pairDetailsItem}>
                     <Text style={styles.pairDetailsHeader}>Преподаватель</Text>
-                    <Text style={styles.pairDetailsText}>{pairItem.teacher.fullname}</Text>
+                    <Text style={styles.pairDetailsText}>{pairItem.teacher ? pairItem.teacher.fullname : ""}</Text>
                 </View>
                 <Divider/>
                 <View style={styles.pairDetailsItem}>

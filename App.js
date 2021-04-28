@@ -11,7 +11,7 @@ import {createStackNavigator} from '@react-navigation/stack';
 import {enableScreens} from 'react-native-screens';
 import {createNativeStackNavigator} from 'react-native-screens/native-stack';
 import {useEffect, useState} from "react";
-import {Colors, IconButton} from "react-native-paper";
+import {Colors, IconButton, Snackbar} from "react-native-paper";
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DropShadow from "react-native-drop-shadow";
@@ -44,6 +44,7 @@ function HomeScreen(props) {
     const [pairsData, setPairsData] = useState({});
     const [weeksText, setWeeksText] = useState("И снова третье сентября");
     const [currentMonday, setCurrentMonday] = useState(getMonday(new Date()));
+    const [snackBarVisible, setSnackBarVisible] = useState(false);
 
     const daysOfWeek = [
         0, 1, 2, 3, 4, 5
@@ -63,8 +64,14 @@ function HomeScreen(props) {
 
     function fetchPairsData() {
         console.log("Fetching pairs data!")
-        fetch(serverURL + 'pairs/by_group/47').then(
-            (response) => response.json()).then((json) => {
+        fetch(serverURL + 'pairs/by_group/all/47').then(
+            (response) => {
+                if (response.ok) {
+                    return response.json()
+                } else {
+                    throw new Error();
+                }
+            }).then((json) => {
             console.log(json)
             let pairsByDayData = {}
             for (let dayIndex in daysOfWeek) {
@@ -72,7 +79,14 @@ function HomeScreen(props) {
             }
             setPairsData(pairsByDayData)
             savePairsToStorage(json).then()
-        }).catch((error) => console.error(error))
+        }).catch((error) => {
+            setSnackBarVisible(true)
+            console.error(error)
+        })
+    }
+
+    function snackBarDismiss() {
+        setSnackBarVisible(false);
     }
 
     async function loadPairsFromStorage() {
@@ -119,10 +133,10 @@ function HomeScreen(props) {
                         <Divider style={styles.pairCellDivider}/>
                         <View style={styles.pairCenterContainer}>
                             <Text style={styles.pairName}>{pairItem.subject}</Text>
-                            <Text>{pairItem.teacher.fullname}</Text>
+                            <Text>{pairItem.teacher ? pairItem.teacher.fullname : ""}</Text>
                         </View>
                         <View>
-                            <Text>{pairItem.auditorium.name}</Text>
+                            <Text>{pairItem.auditorium ? pairItem.auditorium.name : ""}</Text>
                         </View>
                     </View>
                 </Pressable>
@@ -181,6 +195,8 @@ function HomeScreen(props) {
             <SwipeRender data={daysOfWeek} renderItem={renderPairsPane} loop={true} horizontal={true}
                          removeClippedSubviews={false}>
             </SwipeRender>
+            <Snackbar duration={7000} visible={snackBarVisible} style={styles.snackBarContainer}
+                      onDismiss={snackBarDismiss}>Ошибка при обновлении расписания</Snackbar>
             <StatusBar style="auto"/>
         </View>
     )
@@ -241,6 +257,10 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         alignItems: 'center',
         justifyContent: 'center',
+    },
+    snackBarContainer: {
+        flex: 1,
+        justifyContent: 'space-between',
     },
     header: {
         fontWeight: 'bold',
