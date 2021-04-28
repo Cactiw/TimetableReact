@@ -75,7 +75,9 @@ function HomeScreen(props) {
             console.log(json)
             let pairsByDayData = {}
             for (let dayIndex in daysOfWeek) {
-                pairsByDayData[dayIndex] = json.filter(pair => pair["day_of_week"].toString() === dayIndex.toString())
+                pairsByDayData[dayIndex] = json.filter(pair => pair["day_of_week"].toString() === dayIndex.toString()).sort(
+                    (p1, p2) => p1.begin_clear_time > p2.begin_clear_time
+                )
             }
             setPairsData(pairsByDayData)
             savePairsToStorage(json).then()
