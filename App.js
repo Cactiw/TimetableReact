@@ -8,6 +8,8 @@ import SwipeRender from "react-native-swipe-render";
 
 import {createMaterialBottomTabNavigator} from '@react-navigation/material-bottom-tabs';
 import {createStackNavigator} from '@react-navigation/stack';
+import {enableScreens} from 'react-native-screens';
+import {createNativeStackNavigator} from 'react-native-screens/native-stack';
 import {useEffect, useState} from "react";
 import {Colors, IconButton} from "react-native-paper";
 
@@ -18,6 +20,8 @@ import {serverURL} from "./config"
 
 import {globalStyles} from "./styles/global"
 import {pairView} from "./components/pairView"
+
+enableScreens()
 
 
 const MONTH_NAMES = [
@@ -194,8 +198,8 @@ function DetailScreen() {
 
 
 const Tab = createMaterialBottomTabNavigator();
-const Stack = createStackNavigator();
-const HomeStack = createStackNavigator();
+const Stack = createNativeStackNavigator();
+// const HomeStack = createNativeStackNavigator();
 
 
 function HomeHeader() {
@@ -209,7 +213,7 @@ function HomeHeader() {
 function HomeWithHeader() {
     return (
         <Stack.Navigator mode={"modal"}>
-            <Stack.Screen name="Home" options={{headerTitle: props => <HomeHeader {...props} />}}>
+            <Stack.Screen name="Home" options={{headerCenter: HomeHeader}}>
                 {props => <HomeScreen {...props}/>}
             </Stack.Screen>
             <Stack.Screen name={"PairView"} component={pairView}/>
@@ -292,8 +296,6 @@ const styles = StyleSheet.create({
         flexWrap: 'wrap',
         margin: 0.5,
         padding: 10,
-        // width: "match_parent",
-        // width: "88%",
 
         // borderRadius: 10,
         // borderWidth: 1,
