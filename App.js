@@ -33,18 +33,18 @@ const DAY_NAMES = [
 
 Date.prototype.addDays = function (days) {
     let date = new Date(this.valueOf());
-    console.log(days)
     date.setDate(date.getDate() + days);
-    console.log("Returned " + date.toDateString())
     return date;
 }
 
 
 function HomeScreen(props) {
-    const [pairsData, setPairsData] = useState({});
+    let [pairsData, setPairsData] = useState({});
+    let [pairsRefreshing, setPairsRefreshing] = useState(false);
     const [weeksText, setWeeksText] = useState("И снова третье сентября");
     const [currentMonday, setCurrentMonday] = useState(getMonday(new Date()));
     const [snackBarVisible, setSnackBarVisible] = useState(false);
+    const [snackBarText, setSnackBarText] = useState("");
 
     const daysOfWeek = [
         0, 1, 2, 3, 4, 5
@@ -54,8 +54,8 @@ function HomeScreen(props) {
 
     useEffect(() => {
         loadPairsFromStorage().then(() => {
-                console.log("Pairs loaded from device!", pairsData.length)
-                fetchPairsData()
+            console.log("Pairs loaded from device!", pairsData.length)
+            fetchPairsData()
             }
         )
         updateWeekText()
@@ -64,6 +64,7 @@ function HomeScreen(props) {
 
     function fetchPairsData() {
         console.log("Fetching pairs data!")
+
         fetch(serverURL + 'pairs/by_group/all/47').then(
             (response) => {
                 if (response.ok) {
@@ -80,11 +81,17 @@ function HomeScreen(props) {
                 )
             }
             setPairsData(pairsByDayData)
-            savePairsToStorage(json).then()
-        }).catch((error) => {
+            setSnackBarText("Расписание обновлено!")
             setSnackBarVisible(true)
-            console.error(error)
-        })
+            savePairsToStorage(pairsByDayData).then()
+        }).catch((error) => {
+            setSnackBarText("Ошибка при обновлении расписания")
+            setSnackBarVisible(true)
+            // console.error(error)
+        }).finally( () => {
+                setPairsRefreshing(false)
+            }
+        )
     }
 
     function snackBarDismiss() {
@@ -92,8 +99,10 @@ function HomeScreen(props) {
     }
 
     async function loadPairsFromStorage() {
-        const jsonValue = await AsyncStorage.getItem('pairsData')
-        return jsonValue != null ? JSON.parse(jsonValue) : null;
+        let jsonValue = await AsyncStorage.getItem('pairsData')
+        if (jsonValue != null) {
+            setPairsData(JSON.parse(jsonValue))
+        }
     }
 
     async function savePairsToStorage(data) {
@@ -158,6 +167,11 @@ function HomeScreen(props) {
                     renderItem={({item}) => (
                         renderPairCell(item)
                     )}
+                    onRefresh={ () => {
+                        setPairsRefreshing(true)
+                        fetchPairsData()
+                    }}
+                    refreshing={pairsRefreshing}
                 />
             </View>
         )
@@ -194,11 +208,12 @@ function HomeScreen(props) {
                 <Text style={styles.weekInfoText}>{weeksText}</Text>
                 <IconButton icon={require("./assets/forward_arrow.png")} onPress={weekRightArrowClicked}/>
             </View>
-            <SwipeRender data={daysOfWeek} renderItem={renderPairsPane} loop={true} horizontal={true}
+            <SwipeRender data={daysOfWeek} extraData={pairsData} renderItem={renderPairsPane} loop={true} horizontal={true}
                          removeClippedSubviews={false}>
             </SwipeRender>
-            <Snackbar duration={7000} visible={snackBarVisible} style={styles.snackBarContainer}
-                      onDismiss={snackBarDismiss}>Ошибка при обновлении расписания</Snackbar>
+            <Snackbar duration={5000} visible={snackBarVisible} style={styles.snackBarContainer}
+                      wrapperStyle={styles.snackBarWrapper} theme={{colors: {surface : Colors.black}}}
+                      onDismiss={snackBarDismiss}>{snackBarText}</Snackbar>
             <StatusBar style="auto"/>
         </View>
     )
@@ -260,9 +275,16 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
+    snackBarWrapper: {
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
     snackBarContainer: {
         flex: 1,
+        alignItems: 'center',
         justifyContent: 'space-between',
+        backgroundColor: Colors.grey300,
+        width: "75%"
     },
     header: {
         fontWeight: 'bold',
