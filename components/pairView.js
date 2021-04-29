@@ -2,44 +2,80 @@ import {ImageBackground, StyleSheet, Text, View} from "react-native";
 import React from "react";
 import {Colors} from "react-native-paper";
 import {Divider} from "react-native-elements";
+import {FloatingAction} from "react-native-floating-action";
 
 
 export function pairView({route, navigation}) {
     const {pairItem, pairDate} = route.params
     return (
-        <View>
-            <View style={styles.pairHeader}>
-                <ImageBackground source={require("../assets/copybook_1.jpg")} style={styles.image}>
-                    <View style={styles.pairHeaderContainer}>
-                        <Text style={[styles.pairTime, styles.pairHeaderMargin]}>{pairItem.begin_clear_time} — {pairItem.end_clear_time}</Text>
-                        <Text style={[styles.pairHeaderType, styles.pairHeaderMargin]}>{pairItem.group.type.name}</Text>
-                        <Text style={[styles.pairHeaderSubject, styles.pairHeaderMargin]}>{pairItem.subject}</Text>
+        <View style={styles.container}>
+            <View style={styles.pairView}>
+                <View style={styles.pairHeader}>
+                    <ImageBackground source={require("../assets/copybook_1.jpg")} style={styles.image}>
+                        <View style={styles.pairHeaderContainer}>
+                            <Text
+                                style={[styles.pairTime, styles.pairHeaderMargin]}>{pairItem.begin_clear_time} — {pairItem.end_clear_time}</Text>
+                            <Text
+                                style={[styles.pairHeaderType, styles.pairHeaderMargin]}>{pairItem.group.type.name}</Text>
+                            <Text style={[styles.pairHeaderSubject, styles.pairHeaderMargin]}>{pairItem.subject}</Text>
+                        </View>
+                    </ImageBackground>
+                </View>
+                <View>
+                    <View style={styles.pairDetailsItem}>
+                        <Text style={styles.pairDetailsHeader}>Аудитория</Text>
+                        <Text
+                            style={styles.pairDetailsText}>{pairItem.auditorium ? pairItem.auditorium.name : ""}</Text>
                     </View>
-                </ImageBackground>
-            </View>
-            <View>
-                <View style={styles.pairDetailsItem}>
-                    <Text style={styles.pairDetailsHeader}>Аудитория</Text>
-                    <Text style={styles.pairDetailsText}>{pairItem.auditorium ? pairItem.auditorium.name : ""}</Text>
-                </View>
-                <Divider/>
-                <View style={styles.pairDetailsItem}>
-                    <Text style={styles.pairDetailsHeader}>Преподаватель</Text>
-                    <Text style={styles.pairDetailsText}>{pairItem.teacher ? pairItem.teacher.fullname : ""}</Text>
-                </View>
-                <Divider/>
-                <View style={styles.pairDetailsItem}>
-                    <Text style={styles.pairDetailsHeader}>Группа</Text>
-                    <Text style={styles.pairDetailsText}>{pairItem.group.name}</Text>
+                    <Divider/>
+                    <View style={styles.pairDetailsItem}>
+                        <Text style={styles.pairDetailsHeader}>Преподаватель</Text>
+                        <Text style={styles.pairDetailsText}>{pairItem.teacher ? pairItem.teacher.fullname : ""}</Text>
+                    </View>
+                    <Divider/>
+                    <View style={styles.pairDetailsItem}>
+                        <Text style={styles.pairDetailsHeader}>Группа</Text>
+                        <Text style={styles.pairDetailsText}>{pairItem.group.name}</Text>
+                    </View>
                 </View>
             </View>
+
+            <FloatingAction actions={actions}
+                            onPressItem={name => {
+                                console.log(`Pressed ${name}`)
+                            }}
+                            distanceToEdge={{vertical: 30, horizontal: 20}}
+                            // showBackground={false}
+            />
         </View>
     )
 }
 
+
+const actions = [
+    {
+        text: "Перенести",
+        icon: require("../assets/schedule.png"),
+        name: "pair_action_schedule",
+        position: 1,
+    },
+    {
+        text: "Отменить",
+        icon: require("../assets/cancel.png"),
+        name: "pair_action_cancel",
+        position: 2,
+    },
+]
+
 const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+    },
+    pairView: {
+        flex: 1,
+    },
     pairHeader: {
-        height: "50%"
+        height: "40%"
     },
     pairHeaderContainer: {
         marginLeft: "3%",

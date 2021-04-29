@@ -257,7 +257,6 @@ function HomeWithHeader() {
 
 export default function App() {
     return (
-
         <NavigationContainer>
             <Tab.Navigator initialRouteName="Home" screenOptions={{headerShown: false}}>
                 <Tab.Screen name="Home" component={HomeWithHeader}/>
