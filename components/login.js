@@ -1,19 +1,17 @@
 import globals from "../globals";
-import React, {createRef, useState} from "react";
+import React, {createRef, useEffect, useState} from "react";
 import {serverURL} from "../config";
 import LoginScreen from "react-native-login-screen";
 import {View} from "react-native";
 import FlashMessage, {showMessage} from "react-native-flash-message";
+import EncryptedStorage from 'react-native-encrypted-storage';
 
 
 
 
 
-export function CheckLogin(props) {
+export async function CheckLogin(props) {
     const navigation = props.navigation;
-    if (globals.authToken) {
-        navigation.navigate("Home")
-    }
 
     const [login, setLogin] = useState("")
     const [password, setPassword] = useState("")
@@ -21,12 +19,58 @@ export function CheckLogin(props) {
 
     const loginFlashMessage = createRef()
 
+    let loadedToken = await getToken()
+    let loadedUserData = await getUserData()
+
+    useEffect(() => {
+        globals.authToken = loadedToken
+        globals.userData = loadedUserData
+        if (globals.authToken) {
+            navigateToHome()
+        }
+    })
+
+    function navigateToHome() {
+        navigation.navigate("Home")
+    }
+
+    async function saveToken(token) {
+        await EncryptedStorage.setItem("authToken", token)
+    }
+
+    async function getToken() {
+        const token = await EncryptedStorage.getItem("authToken")
+        globals.authToken = token
+        return token
+    }
+
+    async function saveUserData(userData) {
+        await EncryptedStorage.setItem("userData", JSON.stringify(userData))
+    }
+
+    async function getUserData() {
+        return await EncryptedStorage.getItem("userData")
+    }
+
     function loginChanged(login) {
         setLogin(login)
     }
 
     function passwordChanged(password) {
         setPassword(password)
+    }
+
+    async function saveLoginData(response) {
+        let json = await response.json()
+        let token = json['token']
+        globals.authToken = token
+        await saveToken(token)
+
+        delete json['token']
+        await saveUserData(json)
+        globals.userData = json
+
+        navigateToHome()
     }
 
     function loginPressed() {
@@ -50,6 +94,7 @@ export function CheckLogin(props) {
                 showMessage({message: "Ошибка при авторизации.", type: "danger"})
             } else {
                 showMessage({message: "Успешная авторизация!", type: "success"})
+                return saveLoginData(response)
             }
         }).catch(e => {
             console.error(e)

@@ -12,6 +12,8 @@ target 'TimetableReact' do
 
   if !ENV['CI']
     use_flipper!({ 'Flipper' => '0.80.0' })
+    pod 'react-native-encrypted-storage', :path => '../node_modules/react-native-encrypted-storage'
+
     post_install do |installer|
       flipper_post_install(installer)
     end
