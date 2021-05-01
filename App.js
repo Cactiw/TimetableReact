@@ -12,6 +12,7 @@ import {enableScreens} from 'react-native-screens';
 import {createNativeStackNavigator} from 'react-native-screens/native-stack';
 import {useEffect, useState} from "react";
 import {Colors, IconButton, Snackbar} from "react-native-paper";
+import { useBackHandler } from '@react-native-community/hooks'
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DropShadow from "react-native-drop-shadow";
@@ -44,6 +45,7 @@ Date.prototype.addDays = function (days) {
 
 function HomeScreen(props) {
     const navigation = props.navigation;
+
     let [pairsData, setPairsData] = useState({});
     let [pairsRefreshing, setPairsRefreshing] = useState(false);
     const [weeksText, setWeeksText] = useState("И снова третье сентября");
@@ -56,6 +58,8 @@ function HomeScreen(props) {
     ]
 
     useEffect(() => {
+        // clearNavigationHistory()
+
         loadPairsFromStorage().then(() => {
             console.log("Pairs loaded from device!", pairsData.length)
             fetchPairsData()
@@ -63,6 +67,15 @@ function HomeScreen(props) {
         )
         updateWeekText()
     }, []);
+
+    useBackHandler(() => {
+        if (true) {
+            // handle it
+            return true
+        }
+        // let the default thing happen
+        return false
+    })
 
 
     function fetchPairsData() {
@@ -246,8 +259,8 @@ function AppWithTab() {
 
 export function CheckLoginScreen() {
     return (
-        <LoginStack.Navigator>
-            <LoginStack.Screen name={"Login"} options={{headerShown: false}}>
+        <LoginStack.Navigator screenOptions={{headerShown: false}}>
+            <LoginStack.Screen name={"Login"}>
                 {props => <CheckLogin {...props}/>}
             </LoginStack.Screen>
             <LoginStack.Screen name={"AppWithTab"} component={AppWithTab}/>
@@ -272,10 +285,9 @@ function HomeHeader() {
 function HomeWithHeader() {
     return (
         <Stack.Navigator mode={"modal"}>
-            <Stack.Screen name="Home" options={{headerCenter: HomeHeader}}>
+            <Stack.Screen name="Home" options={{headerLeft: ()=> null, headerCenter: HomeHeader}}>
                 {props => <HomeScreen {...props}/>}
             </Stack.Screen>
-            <Stack.Screen name={"Login"} component={loginScreen}/>
             <Stack.Screen name={"PairView"} component={pairView}/>
         </Stack.Navigator>
     )

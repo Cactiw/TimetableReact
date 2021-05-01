@@ -2,7 +2,7 @@ import globals from "../globals";
 import React, {createRef, useEffect, useState} from "react";
 import {serverURL} from "../config";
 import LoginScreen from "react-native-login-screen";
-import {View} from "react-native";
+import {Text, View} from "react-native";
 import FlashMessage, {showMessage} from "react-native-flash-message";
 import EncryptedStorage from 'react-native-encrypted-storage';
 
@@ -10,28 +10,32 @@ import EncryptedStorage from 'react-native-encrypted-storage';
 
 
 
-export async function CheckLogin(props) {
+export function CheckLogin(props) {
+    console.log("Rendering CheckLogin")
     const navigation = props.navigation;
 
     const [login, setLogin] = useState("")
     const [password, setPassword] = useState("")
     const [spinnerVisibility, setSpinnerVisibility] = useState(false)
 
-    const loginFlashMessage = createRef()
-
-    let loadedToken = await getToken()
-    let loadedUserData = await getUserData()
+    let loadedToken
+    let loadedUserData
 
     useEffect(() => {
+        getToken().then(token => {
+            loadedToken = token;
+        }).then(getUserData).then(userData => {
+            loadedUserData = userData
+        }).catch(e => console.error(e))
         globals.authToken = loadedToken
         globals.userData = loadedUserData
         if (globals.authToken) {
             navigateToHome()
         }
-    })
+    }, [])
 
     function navigateToHome() {
-        navigation.navigate("Home")
+        navigation.navigate("AppWithTab")
     }
 
     async function saveToken(token) {
