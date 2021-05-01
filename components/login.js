@@ -11,7 +11,6 @@ import EncryptedStorage from 'react-native-encrypted-storage';
 
 
 export function CheckLogin(props) {
-    console.log("Rendering CheckLogin")
     const navigation = props.navigation;
 
     const [login, setLogin] = useState("")
@@ -26,13 +25,16 @@ export function CheckLogin(props) {
             loadedToken = token;
         }).then(getUserData).then(userData => {
             loadedUserData = userData
-        }).catch(e => console.error(e))
+        }).then(checkToken).catch(e => console.error(e))
+    }, [])
+
+    function checkToken() {
         globals.authToken = loadedToken
         globals.userData = loadedUserData
         if (globals.authToken) {
             navigateToHome()
         }
-    }, [])
+    }
 
     function navigateToHome() {
         navigation.navigate("AppWithTab")
