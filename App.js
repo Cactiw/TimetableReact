@@ -1,13 +1,12 @@
 import {StatusBar} from 'expo-status-bar';
 import React from 'react';
 import {StyleSheet, Text, View, FlatList, Button, Image, Pressable} from 'react-native';
-import {NavigationContainer} from '@react-navigation/native';
+import {NavigationContainer, useRoute} from '@react-navigation/native';
 import {Divider} from 'react-native-elements';
 import SwipeRender from "react-native-swipe-render";
 
 
 import {createMaterialBottomTabNavigator} from '@react-navigation/material-bottom-tabs';
-import {createStackNavigator} from '@react-navigation/stack';
 import {enableScreens} from 'react-native-screens';
 import {createNativeStackNavigator} from 'react-native-screens/native-stack';
 import {useEffect, useState} from "react";
@@ -24,7 +23,6 @@ import {pairView} from "./components/pairView"
 import {CheckLogin} from "./components/login"
 import globals from "globals";
 import FlashMessage from "react-native-flash-message";
-import LoginScreen from "react-native-login-screen";
 
 enableScreens()
 
@@ -69,12 +67,10 @@ function HomeScreen(props) {
     }, []);
 
     useBackHandler(() => {
-        if (true) {
-            // handle it
-            return true
+        if (!navigation.isFocused()) {
+            return false;
         }
-        // let the default thing happen
-        return false
+        return true;
     })
 
 
