@@ -20,6 +20,10 @@ import {serverURL} from "./config"
 
 import {globalStyles} from "./styles/global"
 import {pairView} from "./components/pairView"
+import {CheckLogin} from "./components/login"
+import globals from "globals";
+import FlashMessage from "react-native-flash-message";
+import LoginScreen from "react-native-login-screen";
 
 enableScreens()
 
@@ -39,6 +43,7 @@ Date.prototype.addDays = function (days) {
 
 
 function HomeScreen(props) {
+    const navigation = props.navigation;
     let [pairsData, setPairsData] = useState({});
     let [pairsRefreshing, setPairsRefreshing] = useState(false);
     const [weeksText, setWeeksText] = useState("И снова третье сентября");
@@ -49,8 +54,6 @@ function HomeScreen(props) {
     const daysOfWeek = [
         0, 1, 2, 3, 4, 5
     ]
-
-    const navigation = props.navigation;
 
     useEffect(() => {
         loadPairsFromStorage().then(() => {
@@ -220,6 +223,7 @@ function HomeScreen(props) {
 }
 
 
+
 function DetailScreen() {
     return (
         <View style={styles.container}>
@@ -230,9 +234,31 @@ function DetailScreen() {
 }
 
 
+function AppWithTab() {
+    return (
+        <Tab.Navigator initialRouteName="Home" screenOptions={{headerShown: false}}>
+            <Tab.Screen name="Home" component={HomeWithHeader}/>
+            <Tab.Screen name="Details" component={DetailScreen}/>
+        </Tab.Navigator>
+    )
+}
+
+
+export function CheckLoginScreen() {
+    return (
+        <LoginStack.Navigator>
+            <LoginStack.Screen name={"Login"} options={{headerShown: false}}>
+                {props => <CheckLogin {...props}/>}
+            </LoginStack.Screen>
+            <LoginStack.Screen name={"AppWithTab"} component={AppWithTab}/>
+        </LoginStack.Navigator>
+    )
+}
+
+
 const Tab = createMaterialBottomTabNavigator();
 const Stack = createNativeStackNavigator();
-// const HomeStack = createNativeStackNavigator();
+const LoginStack = createNativeStackNavigator();
 
 
 function HomeHeader() {
@@ -249,6 +275,7 @@ function HomeWithHeader() {
             <Stack.Screen name="Home" options={{headerCenter: HomeHeader}}>
                 {props => <HomeScreen {...props}/>}
             </Stack.Screen>
+            <Stack.Screen name={"Login"} component={loginScreen}/>
             <Stack.Screen name={"PairView"} component={pairView}/>
         </Stack.Navigator>
     )
@@ -258,11 +285,9 @@ function HomeWithHeader() {
 export default function App() {
     return (
         <NavigationContainer>
-            <Tab.Navigator initialRouteName="Home" screenOptions={{headerShown: false}}>
-                <Tab.Screen name="Home" component={HomeWithHeader}/>
-                <Tab.Screen name="Details" component={DetailScreen}/>
-            </Tab.Navigator>
+            <CheckLoginScreen/>
             <StatusBar hidden/>
+            <FlashMessage position={"top"}/>
         </NavigationContainer>
     );
 }
