@@ -50,6 +50,9 @@ export function pairView({route, navigation}) {
                             onPressItem={name => {
                                 console.log(`Pressed ${name}`)
                             }}
+                            floatingIcon={require("../assets/edit.png")}
+                            iconHeight={"35%"}
+                            animated={true}
                             distanceToEdge={{vertical: 30, horizontal: 20}}
                             // showBackground={false}
             />
