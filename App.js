@@ -10,7 +10,7 @@ import {createMaterialBottomTabNavigator} from '@react-navigation/material-botto
 import {enableScreens} from 'react-native-screens';
 import {createNativeStackNavigator} from 'react-native-screens/native-stack';
 import {useEffect, useState} from "react";
-import {Colors, IconButton, Snackbar} from "react-native-paper";
+import {Colors, IconButton, Snackbar, TouchableRipple} from "react-native-paper";
 import { useBackHandler } from '@react-native-community/hooks'
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -158,7 +158,7 @@ function HomeScreen(props) {
                     shadowRadius: 2,
                 }}
             >
-                <Pressable onPress={e => onPairCellPress(e, pairItem)}>
+                <TouchableRipple borderless={true} onPress={e => onPairCellPress(e, pairItem)} >
                     <View style={styles.pairCell}>
                         <View style={styles.pairLeftContainer}>
                             <Text>{pairItem.begin_clear_time}</Text>
@@ -173,7 +173,7 @@ function HomeScreen(props) {
                             {pairItem.auditorium && <Text>{pairItem.auditorium ? pairItem.auditorium.name : ""}</Text>}
                         </View>
                     </View>
-                </Pressable>
+                </TouchableRipple>
             </DropShadow>
         )
     }
