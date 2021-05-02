@@ -1,5 +1,5 @@
 import {ImageBackground, StyleSheet, Text, View} from "react-native";
-import React from "react";
+import React, {useEffect} from "react";
 import {Colors} from "react-native-paper";
 import {Divider} from "react-native-elements";
 import {FloatingAction} from "react-native-floating-action";
@@ -7,6 +7,12 @@ import {FloatingAction} from "react-native-floating-action";
 
 export function pairView({route, navigation}) {
     const {pairItem, pairDate} = route.params
+    useEffect(() => {
+        navigation.setOptions({
+            title: pairDate
+        })
+    })
+
     return (
         <View style={styles.container}>
             <View style={styles.pairView}>

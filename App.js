@@ -136,9 +136,10 @@ function HomeScreen(props) {
     }
 
     function onPairCellPress(event, item) {
+        const pairDate = currentMonday.addDays(item["day_of_week"])
         navigation.navigate('PairView', {
             pairItem: item,
-            pairDate: null
+            pairDate: pairDate.getDate() + " " + MONTH_NAMES[pairDate.getMonth()]
         })
     }
 
