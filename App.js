@@ -351,7 +351,9 @@ const styles = StyleSheet.create({
         fontSize: 18
     },
     weekInfoText: {
-        fontSize: 16
+        fontSize: 16,
+        minWidth: 225,
+        textAlign: 'center'
     },
     dayNameCell: {
         justifyContent: 'center', //Centered vertically
