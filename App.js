@@ -1,17 +1,17 @@
 import {StatusBar} from 'expo-status-bar';
 import React from 'react';
 import {StyleSheet, Text, View, FlatList, Button, Image, Pressable} from 'react-native';
-import {NavigationContainer} from '@react-navigation/native';
+import {NavigationContainer, useRoute, useNavigation} from '@react-navigation/native';
 import {Divider} from 'react-native-elements';
 import SwipeRender from "react-native-swipe-render";
 
 
 import {createMaterialBottomTabNavigator} from '@react-navigation/material-bottom-tabs';
-import {createStackNavigator} from '@react-navigation/stack';
 import {enableScreens} from 'react-native-screens';
 import {createNativeStackNavigator} from 'react-native-screens/native-stack';
 import {useEffect, useState} from "react";
-import {Colors, IconButton, Snackbar} from "react-native-paper";
+import {Colors, IconButton, Snackbar, TouchableRipple} from "react-native-paper";
+import { useBackHandler } from '@react-native-community/hooks'
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DropShadow from "react-native-drop-shadow";
@@ -20,6 +20,10 @@ import {serverURL} from "./config"
 
 import {globalStyles} from "./styles/global"
 import {pairView} from "./components/pairView"
+import {CheckLogin} from "./components/login"
+import globals from "./globals";
+import FlashMessage from "react-native-flash-message";
+import EncryptedStorage from "react-native-encrypted-storage";
 
 enableScreens()
 
@@ -39,6 +43,8 @@ Date.prototype.addDays = function (days) {
 
 
 function HomeScreen(props) {
+    const navigation = props.navigation;
+
     let [pairsData, setPairsData] = useState({});
     let [pairsRefreshing, setPairsRefreshing] = useState(false);
     const [weeksText, setWeeksText] = useState("И снова третье сентября");
@@ -50,9 +56,9 @@ function HomeScreen(props) {
         0, 1, 2, 3, 4, 5
     ]
 
-    const navigation = props.navigation;
-
     useEffect(() => {
+        // clearNavigationHistory()
+
         loadPairsFromStorage().then(() => {
             console.log("Pairs loaded from device!", pairsData.length)
             fetchPairsData()
@@ -61,25 +67,41 @@ function HomeScreen(props) {
         updateWeekText()
     }, []);
 
+    useBackHandler(() => {
+        if (!navigation.isFocused()) {
+            return false;
+        }
+        return true;
+    })
+
 
     function fetchPairsData() {
         console.log("Fetching pairs data!")
-
-        fetch(serverURL + 'pairs/by_group/all/47').then(
+        fetch(serverURL + 'pairs/timetable', {
+            headers: {
+                'Authorization': 'Bearer ' + globals.authToken
+            }
+        }).then(
             (response) => {
                 if (response.ok) {
                     return response.json()
                 } else {
+                    if (response.status === 401) {
+                        return logout(navigation)
+                    }
                     throw new Error();
                 }
             }).then((json) => {
-            console.log(json)
-            let pairsByDayData = {}
-            for (let dayIndex in daysOfWeek) {
-                pairsByDayData[dayIndex] = json.filter(pair => pair["day_of_week"].toString() === dayIndex.toString()).sort(
-                    (p1, p2) => p1.begin_clear_time > p2.begin_clear_time
-                )
-            }
+                if (!json) {
+                    return
+                }
+                console.log(json)
+                let pairsByDayData = {}
+                for (let dayIndex in daysOfWeek) {
+                    pairsByDayData[dayIndex] = json.filter(pair => pair["day_of_week"].toString() === dayIndex.toString()).sort(
+                        (p1, p2) => p1.begin_clear_time > p2.begin_clear_time
+                    )
+                }
             setPairsData(pairsByDayData)
             setSnackBarText("Расписание обновлено!")
             setSnackBarVisible(true)
@@ -87,7 +109,7 @@ function HomeScreen(props) {
         }).catch((error) => {
             setSnackBarText("Ошибка при обновлении расписания")
             setSnackBarVisible(true)
-            // console.error(error)
+            console.error(error)
         }).finally( () => {
                 setPairsRefreshing(false)
             }
@@ -114,9 +136,10 @@ function HomeScreen(props) {
     }
 
     function onPairCellPress(event, item) {
+        const pairDate = currentMonday.addDays(item["day_of_week"])
         navigation.navigate('PairView', {
             pairItem: item,
-            pairDate: null
+            pairDate: pairDate.getDate() + " " + MONTH_NAMES[pairDate.getMonth()]
         })
     }
 
@@ -135,7 +158,7 @@ function HomeScreen(props) {
                     shadowRadius: 2,
                 }}
             >
-                <Pressable onPress={e => onPairCellPress(e, pairItem)}>
+                <TouchableRipple borderless={true} onPress={e => onPairCellPress(e, pairItem)} >
                     <View style={styles.pairCell}>
                         <View style={styles.pairLeftContainer}>
                             <Text>{pairItem.begin_clear_time}</Text>
@@ -150,7 +173,7 @@ function HomeScreen(props) {
                             {pairItem.auditorium && <Text>{pairItem.auditorium ? pairItem.auditorium.name : ""}</Text>}
                         </View>
                     </View>
-                </Pressable>
+                </TouchableRipple>
             </DropShadow>
         )
     }
@@ -219,6 +242,13 @@ function HomeScreen(props) {
     )
 }
 
+async function logout(navigation) {
+    globals.authToken = null;
+    globals.userData = null;
+
+    await EncryptedStorage.clear()
+    navigation.navigate("Login")
+}
 
 function DetailScreen() {
     return (
@@ -230,15 +260,47 @@ function DetailScreen() {
 }
 
 
+function AppWithTab() {
+    return (
+        <Tab.Navigator initialRouteName="Home" screenOptions={{headerShown: false}}>
+            <Tab.Screen name="Home" component={HomeWithHeader}/>
+            <Tab.Screen name="Details" component={DetailScreen}/>
+        </Tab.Navigator>
+    )
+}
+
+
+export function CheckLoginScreen() {
+    return (
+        <LoginStack.Navigator screenOptions={{headerShown: false}}>
+            <LoginStack.Screen name={"Login"}>
+                {props => <CheckLogin {...props}/>}
+            </LoginStack.Screen>
+            <LoginStack.Screen name={"AppWithTab"} component={AppWithTab}/>
+        </LoginStack.Navigator>
+    )
+}
+
+
 const Tab = createMaterialBottomTabNavigator();
 const Stack = createNativeStackNavigator();
-// const HomeStack = createNativeStackNavigator();
+const LoginStack = createNativeStackNavigator();
 
 
 function HomeHeader() {
     return (
-        <View style={styles.container}>
+        <View>
             <Text style={styles.header}>Расписание</Text>
+        </View>
+    )
+}
+
+function HomeSettings() {
+    const navigation = useNavigation()
+
+    return (
+        <View>
+            <IconButton icon={require("./assets/settings.png")} onPress={() => logout(navigation)}/>
         </View>
     )
 }
@@ -246,7 +308,8 @@ function HomeHeader() {
 function HomeWithHeader() {
     return (
         <Stack.Navigator mode={"modal"}>
-            <Stack.Screen name="Home" options={{headerCenter: HomeHeader}}>
+            <Stack.Screen name="Home" options={{headerLeft: ()=> null, headerCenter: HomeHeader,
+                headerRight: HomeSettings}}>
                 {props => <HomeScreen {...props}/>}
             </Stack.Screen>
             <Stack.Screen name={"PairView"} component={pairView}/>
@@ -258,11 +321,9 @@ function HomeWithHeader() {
 export default function App() {
     return (
         <NavigationContainer>
-            <Tab.Navigator initialRouteName="Home" screenOptions={{headerShown: false}}>
-                <Tab.Screen name="Home" component={HomeWithHeader}/>
-                <Tab.Screen name="Details" component={DetailScreen}/>
-            </Tab.Navigator>
+            <CheckLoginScreen/>
             <StatusBar hidden/>
+            <FlashMessage position={"top"}/>
         </NavigationContainer>
     );
 }

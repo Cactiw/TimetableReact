@@ -1,5 +1,5 @@
 import {ImageBackground, StyleSheet, Text, View} from "react-native";
-import React from "react";
+import React, {useEffect} from "react";
 import {Colors} from "react-native-paper";
 import {Divider} from "react-native-elements";
 import {FloatingAction} from "react-native-floating-action";
@@ -7,6 +7,12 @@ import {FloatingAction} from "react-native-floating-action";
 
 export function pairView({route, navigation}) {
     const {pairItem, pairDate} = route.params
+    useEffect(() => {
+        navigation.setOptions({
+            title: pairDate
+        })
+    })
+
     return (
         <View style={styles.container}>
             <View style={styles.pairView}>
@@ -25,12 +31,12 @@ export function pairView({route, navigation}) {
                     <View style={styles.pairDetailsItem}>
                         <Text style={styles.pairDetailsHeader}>Аудитория</Text>
                         <Text
-                            style={styles.pairDetailsText}>{pairItem.auditorium ? pairItem.auditorium.name : ""}</Text>
+                            style={styles.pairDetailsText}>{pairItem.auditorium ? pairItem.auditorium.name : "—"}</Text>
                     </View>
                     <Divider/>
                     <View style={styles.pairDetailsItem}>
                         <Text style={styles.pairDetailsHeader}>Преподаватель</Text>
-                        <Text style={styles.pairDetailsText}>{pairItem.teacher ? pairItem.teacher.fullname : ""}</Text>
+                        <Text style={styles.pairDetailsText}>{pairItem.teacher ? pairItem.teacher.fullname : "—"}</Text>
                     </View>
                     <Divider/>
                     <View style={styles.pairDetailsItem}>
@@ -44,6 +50,9 @@ export function pairView({route, navigation}) {
                             onPressItem={name => {
                                 console.log(`Pressed ${name}`)
                             }}
+                            floatingIcon={require("../assets/edit.png")}
+                            iconHeight={20}
+                            animated={true}
                             distanceToEdge={{vertical: 30, horizontal: 20}}
                             // showBackground={false}
             />
