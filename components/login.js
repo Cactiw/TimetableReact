@@ -70,6 +70,8 @@ export function CheckLogin(props) {
         let json = await response.json()
         let token = json['token']
         globals.authToken = token
+        console.log("Saved token!")
+        console.log(globals.authToken)
         await saveToken(token)
 
         delete json['token']

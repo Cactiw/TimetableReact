@@ -21,8 +21,9 @@ import {serverURL} from "./config"
 import {globalStyles} from "./styles/global"
 import {pairView} from "./components/pairView"
 import {CheckLogin} from "./components/login"
-import globals from "globals";
+import globals from "./globals";
 import FlashMessage from "react-native-flash-message";
+import EncryptedStorage from "react-native-encrypted-storage";
 
 enableScreens()
 
@@ -76,22 +77,31 @@ function HomeScreen(props) {
 
     function fetchPairsData() {
         console.log("Fetching pairs data!")
-
-        fetch(serverURL + 'pairs/by_group/all/47').then(
+        fetch(serverURL + 'pairs/timetable', {
+            headers: {
+                'Authorization': 'Bearer ' + globals.authToken
+            }
+        }).then(
             (response) => {
                 if (response.ok) {
                     return response.json()
                 } else {
+                    if (response.status === 401) {
+                        return logout()
+                    }
                     throw new Error();
                 }
             }).then((json) => {
-            console.log(json)
-            let pairsByDayData = {}
-            for (let dayIndex in daysOfWeek) {
-                pairsByDayData[dayIndex] = json.filter(pair => pair["day_of_week"].toString() === dayIndex.toString()).sort(
-                    (p1, p2) => p1.begin_clear_time > p2.begin_clear_time
-                )
-            }
+                if (!json) {
+                    return
+                }
+                console.log(json)
+                let pairsByDayData = {}
+                for (let dayIndex in daysOfWeek) {
+                    pairsByDayData[dayIndex] = json.filter(pair => pair["day_of_week"].toString() === dayIndex.toString()).sort(
+                        (p1, p2) => p1.begin_clear_time > p2.begin_clear_time
+                    )
+                }
             setPairsData(pairsByDayData)
             setSnackBarText("Расписание обновлено!")
             setSnackBarVisible(true)
@@ -99,11 +109,19 @@ function HomeScreen(props) {
         }).catch((error) => {
             setSnackBarText("Ошибка при обновлении расписания")
             setSnackBarVisible(true)
-            // console.error(error)
+            console.error(error)
         }).finally( () => {
                 setPairsRefreshing(false)
             }
         )
+    }
+
+    async function logout() {
+        globals.authToken = null;
+        globals.userData = null;
+
+        await EncryptedStorage.clear()
+        navigation.navigate("Login")
     }
 
     function snackBarDismiss() {
