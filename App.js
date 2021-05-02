@@ -1,7 +1,7 @@
 import {StatusBar} from 'expo-status-bar';
 import React from 'react';
 import {StyleSheet, Text, View, FlatList, Button, Image, Pressable} from 'react-native';
-import {NavigationContainer, useRoute} from '@react-navigation/native';
+import {NavigationContainer, useRoute, useNavigation} from '@react-navigation/native';
 import {Divider} from 'react-native-elements';
 import SwipeRender from "react-native-swipe-render";
 
@@ -87,7 +87,7 @@ function HomeScreen(props) {
                     return response.json()
                 } else {
                     if (response.status === 401) {
-                        return logout()
+                        return logout(navigation)
                     }
                     throw new Error();
                 }
@@ -114,14 +114,6 @@ function HomeScreen(props) {
                 setPairsRefreshing(false)
             }
         )
-    }
-
-    async function logout() {
-        globals.authToken = null;
-        globals.userData = null;
-
-        await EncryptedStorage.clear()
-        navigation.navigate("Login")
     }
 
     function snackBarDismiss() {
@@ -249,7 +241,13 @@ function HomeScreen(props) {
     )
 }
 
+async function logout(navigation) {
+    globals.authToken = null;
+    globals.userData = null;
 
+    await EncryptedStorage.clear()
+    navigation.navigate("Login")
+}
 
 function DetailScreen() {
     return (
@@ -290,8 +288,18 @@ const LoginStack = createNativeStackNavigator();
 
 function HomeHeader() {
     return (
-        <View style={styles.container}>
+        <View>
             <Text style={styles.header}>Расписание</Text>
+        </View>
+    )
+}
+
+function HomeSettings() {
+    const navigation = useNavigation()
+
+    return (
+        <View>
+            <IconButton icon={require("./assets/settings.png")} onPress={() => logout(navigation)}/>
         </View>
     )
 }
@@ -299,7 +307,8 @@ function HomeHeader() {
 function HomeWithHeader() {
     return (
         <Stack.Navigator mode={"modal"}>
-            <Stack.Screen name="Home" options={{headerLeft: ()=> null, headerCenter: HomeHeader}}>
+            <Stack.Screen name="Home" options={{headerLeft: ()=> null, headerCenter: HomeHeader,
+                headerRight: HomeSettings}}>
                 {props => <HomeScreen {...props}/>}
             </Stack.Screen>
             <Stack.Screen name={"PairView"} component={pairView}/>
