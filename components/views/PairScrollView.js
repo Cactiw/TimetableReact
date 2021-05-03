@@ -32,7 +32,7 @@ export default React.memo(({pairsData, currentMonday, fetchPairsData, pairsRefre
         </SwipeRender>
     )
 }, (oldState, newState) => {
-    return oldState === newState
+    return oldState.pairsData === newState.pairsData
 })
 
 
