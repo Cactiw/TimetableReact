@@ -6,7 +6,7 @@
  * @flow strict-local
  */
 
-import React, {memo, useCallback, useMemo} from 'react';
+import React, {createRef, memo, useCallback, useMemo, useRef} from 'react';
 import {StyleSheet, Text, View, FlatList, Button, Image, Pressable, StatusBar} from 'react-native';
 import {NavigationContainer, useRoute, useNavigation} from '@react-navigation/native';
 import {Divider} from 'react-native-elements';
@@ -52,6 +52,8 @@ const HomeScreen = memo(function HomeScreen(props) {
   const [snackBarVisible, setSnackBarVisible] = useState(false);
   const [snackBarText, setSnackBarText] = useState("");
   const [pairsRefreshing, setPairsRefreshing] = useState(false);
+
+  const pairsSwiperRef = useRef()
 
   useEffect(() => {
     // clearNavigationHistory()
@@ -153,10 +155,12 @@ const HomeScreen = memo(function HomeScreen(props) {
 
   async function weekLeftArrowClicked() {
     await setCurrentMonday(currentMonday.addDays(-7))
+      pairsSwiperRef.current.scrollBy(-7, true)
   }
 
   async function weekRightArrowClicked() {
     await setCurrentMonday(currentMonday.addDays(7))
+          pairsSwiperRef.current.scrollBy(7, true)
   }
 
   return (
@@ -167,7 +171,7 @@ const HomeScreen = memo(function HomeScreen(props) {
           <IconButton icon={require("./assets/forward_arrow.png")} onPress={weekRightArrowClicked}/>
         </View>
         <PairScrollView pairsData={pairsData} currentMonday={currentMonday} fetchPairsData={fetchPairsData}
-                        pairsRefreshing={pairsRefreshing}/>
+                        pairsRefreshing={pairsRefreshing} pairsSwiperRef={pairsSwiperRef}/>
         <Snackbar duration={5000} visible={snackBarVisible} style={styles.snackBarContainer}
                   wrapperStyle={styles.snackBarWrapper} theme={{colors: {surface : Colors.black}}}
                   onDismiss={snackBarDismiss}>{snackBarText}</Snackbar>

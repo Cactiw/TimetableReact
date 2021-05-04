@@ -22,7 +22,7 @@ const neverChange = true;
 //           sliderWidth={windowWidth} itemWidth={windowWidth}
 //           enableMomentum={true} decelerationRate={0.9}/>
 
-export default React.memo(({pairsData, currentMonday, fetchPairsData, pairsRefreshing}) => {
+export default React.memo(({pairsData, currentMonday, fetchPairsData, pairsRefreshing, pairsSwiperRef}) => {
     console.log(pairsData)
     console.log("Rendering view")
 
@@ -34,13 +34,14 @@ export default React.memo(({pairsData, currentMonday, fetchPairsData, pairsRefre
     const windowWidth = Dimensions.get('window').width;
 
     return (
-        <SwipeRender data={daysToRender} extraData={pairsData} renderItem={
+        <SwipeRender ref={pairsSwiperRef} data={daysToRender} extraData={pairsData} renderItem={
             (props) => <PairScrollPaneView pairsData={pairsData} currentMonday={currentMonday}
                                            fetchPairsData={fetchPairsData} pairsRefreshing={pairsRefreshing}
                                            startOffset={startOffset}
                                            modOffset={modOffset} item={props.item} index={props.index}/>
         }
-                     loop={false} horizontal={true} removeClippedSubviews={true} enableAndroidViewPager={false}
+                     enableAndroidViewPager={false}
+                     loop={false} horizontal={true} removeClippedSubviews={true}
                      loadMinimal={true} loadMinimalSize={21} index={startOffset + (new Date()).getDay() - 1}>
         </SwipeRender>
     )
