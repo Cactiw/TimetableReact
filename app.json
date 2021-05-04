@@ -1,15 +1,4 @@
 {
-  "name": "TimetableReact",
-  "displayName": "TimetableReact",
-  "expo": {
-    "name": "TimetableReact",
-    "slug": "TimetableReact",
-    "version": "1.0.0",
-    "assetBundlePatterns": [
-      "**/*"
-    ],
-    "android": {
-      "package": "timetable.react"
-    }
-  }
+  "name": "TimetableReactNew",
+  "displayName": "TimetableReactNew"
 }
