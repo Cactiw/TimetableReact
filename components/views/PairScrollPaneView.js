@@ -10,7 +10,10 @@ import {useNavigation} from "@react-navigation/native";
 export default React.memo(({item, index, pairsData, startOffset, modOffset, currentMonday, fetchPairsData,
                            pairsRefreshing}) => {
     console.log("Rendering pane", index)
-    let dayOfWeek = (item - startOffset + modOffset) % globals.daysOfWeek.length
+    let changeDays = (item - startOffset)
+    const today = new Date()
+    let currentDay = today.addDays(changeDays).addDays(-(today.getDay() - 1))
+    let dayOfWeek = (changeDays + modOffset) % globals.daysOfWeek.length
 
     const navigation = useNavigation()
 
@@ -63,7 +66,8 @@ export default React.memo(({item, index, pairsData, startOffset, modOffset, curr
     return (
         <View style={styles.pairsPane}>
             <View style={styles.dayNameCell}>
-                <Text style={styles.dayNameHeader}>{globals.DAY_NAMES[dayOfWeek]}</Text>
+                <Text style={styles.dayNameHeader}>{
+                    `${globals.DAY_NAMES[dayOfWeek]}, ${currentDay.getDate()} ${globals.MONTH_NAMES[currentDay.getMonth()]}`}</Text>
             </View>
             <FlatList
                 data={pairsData[dayOfWeek]}

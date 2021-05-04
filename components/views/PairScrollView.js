@@ -7,9 +7,20 @@ import {Colors, TouchableRipple} from "react-native-paper";
 import {Divider} from "react-native-elements";
 import {useNavigation} from "@react-navigation/native";
 import PairScrollPaneView from "./PairScrollPaneView";
+import Carousel from 'react-native-snap-carousel';
 
 
 const neverChange = true;
+
+
+// <Carousel data={daysToRender} extraData={pairsData} renderItem={
+//     (props) => <PairScrollPaneView pairsData={pairsData} currentMonday={currentMonday}
+//                                    fetchPairsData={fetchPairsData} pairsRefreshing={pairsRefreshing}
+//                                    startOffset={startOffset}
+//                                    modOffset={modOffset} item={props.item} index={props.index}/>
+// }
+//           sliderWidth={windowWidth} itemWidth={windowWidth}
+//           enableMomentum={true} decelerationRate={0.9}/>
 
 export default React.memo(({pairsData, currentMonday, fetchPairsData, pairsRefreshing}) => {
     console.log(pairsData)
@@ -20,6 +31,8 @@ export default React.memo(({pairsData, currentMonday, fetchPairsData, pairsRefre
     const modOffset = renderDays * globals.daysOfWeek.length
     const daysToRender = [...Array(renderDays).keys()];
 
+    const windowWidth = Dimensions.get('window').width;
+
     return (
         <SwipeRender data={daysToRender} extraData={pairsData} renderItem={
             (props) => <PairScrollPaneView pairsData={pairsData} currentMonday={currentMonday}
@@ -28,7 +41,7 @@ export default React.memo(({pairsData, currentMonday, fetchPairsData, pairsRefre
                                            modOffset={modOffset} item={props.item} index={props.index}/>
         }
                      loop={false} horizontal={true} removeClippedSubviews={true} enableAndroidViewPager={false}
-                     loadMinimal={true} loadMinimalSize={21} index={startOffset}>
+                     loadMinimal={true} loadMinimalSize={21} index={startOffset + (new Date()).getDay() - 1}>
         </SwipeRender>
     )
 }, (oldState, newState) => {
