@@ -12,4 +12,7 @@ export const globalStyles = StyleSheet.create({
     marginTop5: {
         marginTop: "5%"
     },
+    backgroundDark: {
+        backgroundColor: "rgba(76,81,126,1)",
+    }
 })

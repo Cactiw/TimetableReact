@@ -201,9 +201,20 @@ function DetailScreen() {
 
 function AppWithTab() {
     return (
-        <Tab.Navigator initialRouteName="Home" screenOptions={{headerShown: false}}>
-            <Tab.Screen name="Home" component={HomeWithHeader}/>
-            <Tab.Screen name="Details" component={DetailScreen}/>
+        <Tab.Navigator barStyle={globalStyles.backgroundDark} initialRouteName="MainScreen" screenOptions={{headerShown: false}}>
+            <Tab.Screen name="MainScreen" component={HomeWithHeader} options={{
+                tabBarLabel: "Расписание",
+                tabBarIcon: ({ tintColor }) => (
+                    <Image source={require('./assets/classes.png')} height={"1"}/>
+                )
+
+            }}/>
+            <Tab.Screen name="Details" component={DetailScreen} options={{
+                tabBarLabel: "Профиль",
+                tabBarIcon: ({ tintColor }) => (
+                    <Image source={require('./assets/profile.png')} resizeMode={"stretch"} width={"5%"}/>
+                )
+            }}/>
         </Tab.Navigator>
     )
 }

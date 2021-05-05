@@ -54,7 +54,9 @@ const styles = StyleSheet.create({
         justifyContent: 'center', //Centered vertically
         alignItems: 'center', // Centered horizontally
         // backgroundColor: Colors.red50,
-        backgroundColor: Colors.grey200,
+        // backgroundColor: Colors.grey200,
+        // backgroundColor: "#3d4058",
+        backgroundColor: "rgba(76,81,126,1)",
         alignSelf: 'stretch',
         textAlign: 'center',
         flexDirection: 'row',
@@ -67,6 +69,7 @@ const styles = StyleSheet.create({
     dayNameHeader: {
         fontWeight: "bold",
         fontSize: 16,
+        color: Colors.white
     },
     pairsPane: {
         // width: "85%",
