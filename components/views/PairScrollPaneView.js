@@ -38,7 +38,7 @@ export default React.memo(({item, index, pairsData, startOffset, modOffset, curr
                 data={pairsData[dayOfWeek]}
                 keyExtractor={({id}, index) => id.toString()}
                 renderItem={({item}) => (
-                    <PairScrollCellView pairItem={item} index={index}/>
+                    <PairScrollCellView pairItem={item} index={index} currentDay={currentDay}/>
                 )}
                 onRefresh={ () => {
                     fetchPairsData()
