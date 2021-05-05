@@ -18,7 +18,7 @@ import {enableScreens} from 'react-native-screens';
 import {createNativeStackNavigator} from 'react-native-screens/native-stack';
 import {useEffect, useState} from "react";
 import {Colors, IconButton, Snackbar, TouchableRipple} from "react-native-paper";
-import { useBackHandler } from '@react-native-community/hooks'
+import {useBackHandler} from '@react-native-community/hooks'
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DropShadow from "react-native-drop-shadow";
@@ -37,186 +37,187 @@ enableScreens()
 
 
 Date.prototype.addDays = function (days) {
-  let date = new Date(this.valueOf());
-  date.setDate(date.getDate() + days);
-  return date;
+    let date = new Date(this.valueOf());
+    date.setDate(date.getDate() + days);
+    return date;
 }
 
 
 const HomeScreen = memo(function HomeScreen(props) {
-  const navigation = props.navigation;
+    const navigation = props.navigation;
 
-  const [pairsData, setPairsData] = useState({});
-  const [weeksText, setWeeksText] = useState("И снова третье сентября");
-  const [currentMonday, setCurrentMonday] = useState(getMonday(new Date()));
-  const [snackBarVisible, setSnackBarVisible] = useState(false);
-  const [snackBarText, setSnackBarText] = useState("");
-  const [pairsRefreshing, setPairsRefreshing] = useState(false);
+    const [pairsData, setPairsData] = useState({});
+    const [weeksText, setWeeksText] = useState("И снова третье сентября");
+    const [currentMonday, setCurrentMonday] = useState(globals.getMonday(new Date()));
+    const [snackBarVisible, setSnackBarVisible] = useState(false);
+    const [snackBarText, setSnackBarText] = useState("");
+    const [pairsRefreshing, setPairsRefreshing] = useState(false);
 
-  const pairsSwiperRef = useRef()
+    console.log("Rendering HomeScreen!", currentMonday)
 
-  useEffect(() => {
-    // clearNavigationHistory()
+    const pairsSwiperRef = useRef()
 
-    loadPairsFromStorage().then(() => {
-          console.log("Pairs loaded from device!", pairsData.length)
-          fetchPairsData()
-        }
-    )
-    updateWeekText()
-  }, []);
+    useEffect(() => {
+        // clearNavigationHistory()
 
-  useBackHandler(() => {
-    if (!navigation.isFocused()) {
-      return false;
-    }
-    return true;
-  })
-
-
-  function fetchPairsData(setRefresh) {
-    if (setRefresh) {
-      setPairsRefreshing(true)
-    }
-    console.log("Fetching pairs data!")
-    fetch(serverURL + 'pairs/timetable', {
-      headers: {
-        'Authorization': 'Bearer ' + globals.authToken
-      }
-    }).then(
-        (response) => {
-          if (response.ok) {
-            return response.json()
-          } else {
-            if (response.status === 401) {
-              return logout(navigation)
+        loadPairsFromStorage().then(() => {
+                console.log("Pairs loaded from device!", pairsData.length)
+                fetchPairsData()
             }
-            throw new Error();
-          }
-        }).then((json) => {
-      if (!json) {
-        return
-      }
-      console.log(json)
-      let pairsByDayData = {}
-      for (let dayIndex in globals.daysOfWeek) {
-        pairsByDayData[dayIndex] = json.filter(pair => pair["day_of_week"].toString() === dayIndex.toString()).sort(
-            (p1, p2) => p1.begin_clear_time > p2.begin_clear_time
         )
-      }
-      setPairsData(pairsByDayData)
-      setSnackBarText("Расписание обновлено!")
-      setSnackBarVisible(true)
-      savePairsToStorage(pairsByDayData).then()
-    }).catch((error) => {
-      setSnackBarText("Ошибка при обновлении расписания")
-      setSnackBarVisible(true)
-      console.error(error)
-    }).finally( () => {
-          setPairsRefreshing(false)
+        updateWeekText()
+    }, []);
+
+    useBackHandler(() => {
+        if (!navigation.isFocused()) {
+            return false;
         }
-    )
-  }
+        return true;
+    })
 
-  function snackBarDismiss() {
-    setSnackBarVisible(false);
-  }
-
-  async function loadPairsFromStorage() {
-    let jsonValue = await AsyncStorage.getItem('pairsData')
-    if (jsonValue != null) {
-      setPairsData(JSON.parse(jsonValue))
+    async function onCurrentMondayChanged(value) {
+        await setCurrentMonday(value)
     }
-  }
 
-  async function savePairsToStorage(data) {
-    try {
-      await AsyncStorage.setItem('pairsData', JSON.stringify(data))
-    } catch (e) {
-      console.error(e)
+
+    function fetchPairsData(setRefresh) {
+        if (setRefresh) {
+            setPairsRefreshing(true)
+        }
+        console.log("Fetching pairs data!")
+        fetch(serverURL + 'pairs/timetable', {
+            headers: {
+                'Authorization': 'Bearer ' + globals.authToken
+            }
+        }).then(
+            (response) => {
+                if (response.ok) {
+                    return response.json()
+                } else {
+                    if (response.status === 401) {
+                        return logout(navigation)
+                    }
+                    throw new Error();
+                }
+            }).then((json) => {
+            if (!json) {
+                return
+            }
+            console.log(json)
+            let pairsByDayData = {}
+            for (let dayIndex in globals.daysOfWeek) {
+                pairsByDayData[dayIndex] = json.filter(pair => pair["day_of_week"].toString() === dayIndex.toString()).sort(
+                    (p1, p2) => p1.begin_clear_time > p2.begin_clear_time
+                )
+            }
+            setPairsData(pairsByDayData)
+            setSnackBarText("Расписание обновлено!")
+            setSnackBarVisible(true)
+            savePairsToStorage(pairsByDayData).then()
+        }).catch((error) => {
+            setSnackBarText("Ошибка при обновлении расписания")
+            setSnackBarVisible(true)
+            console.error(error)
+        }).finally(() => {
+                setPairsRefreshing(false)
+            }
+        )
     }
-  }
 
-  function getMonday(d) {
-    d = new Date(d);
-    let day = d.getDay(),
-        diff = d.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
-    return new Date(d.setDate(diff));
-  }
+    function snackBarDismiss() {
+        setSnackBarVisible(false);
+    }
 
-  function updateWeekText() {
-    console.log(currentMonday)
-    let endWeek = currentMonday.addDays(6)
-    setWeeksText(currentMonday.getDate() + " " + globals.MONTH_NAMES[currentMonday.getMonth()] + "  —  " +
-        endWeek.getDate() + " " + globals.MONTH_NAMES[endWeek.getMonth()])
-  }
+    async function loadPairsFromStorage() {
+        let jsonValue = await AsyncStorage.getItem('pairsData')
+        if (jsonValue != null) {
+            setPairsData(JSON.parse(jsonValue))
+        }
+    }
 
-  useEffect(() => updateWeekText(), [currentMonday])
+    async function savePairsToStorage(data) {
+        try {
+            await AsyncStorage.setItem('pairsData', JSON.stringify(data))
+        } catch (e) {
+            console.error(e)
+        }
+    }
 
-  async function weekLeftArrowClicked() {
-    await setCurrentMonday(currentMonday.addDays(-7))
-      pairsSwiperRef.current.scrollBy(-7, true)
-  }
+    function updateWeekText() {
+        console.log(currentMonday)
+        let endWeek = currentMonday.addDays(6)
+        setWeeksText(currentMonday.getDate() + " " + globals.MONTH_NAMES[currentMonday.getMonth()] + "  —  " +
+            endWeek.getDate() + " " + globals.MONTH_NAMES[endWeek.getMonth()])
+    }
 
-  async function weekRightArrowClicked() {
-    await setCurrentMonday(currentMonday.addDays(7))
-          pairsSwiperRef.current.scrollBy(7, true)
-  }
+    useEffect(() => updateWeekText(), [currentMonday])
 
-  return (
-      <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-        <View style={[globalStyles.horizontalContainer, globalStyles.marginTop5]}>
-          <IconButton icon={require("./assets/back_arrow.png")} onPress={weekLeftArrowClicked}/>
-          <Text style={styles.weekInfoText}>{weeksText}</Text>
-          <IconButton icon={require("./assets/forward_arrow.png")} onPress={weekRightArrowClicked}/>
+    async function weekLeftArrowClicked() {
+        // await setCurrentMonday(currentMonday.addDays(-7))
+        pairsSwiperRef.current.scrollBy(-7, true)
+    }
+
+    async function weekRightArrowClicked() {
+        // await setCurrentMonday(currentMonday.addDays(7))
+        pairsSwiperRef.current.scrollBy(7, true)
+    }
+
+    return (
+        <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+            <View style={[globalStyles.horizontalContainer, globalStyles.marginTop5]}>
+                <IconButton icon={require("./assets/back_arrow.png")} onPress={weekLeftArrowClicked}/>
+                <Text style={styles.weekInfoText}>{weeksText}</Text>
+                <IconButton icon={require("./assets/forward_arrow.png")} onPress={weekRightArrowClicked}/>
+            </View>
+            <PairScrollView pairsData={pairsData} currentMonday={currentMonday}
+                            onCurrentMondayChanged={onCurrentMondayChanged}
+                            fetchPairsData={fetchPairsData}
+                            pairsRefreshing={pairsRefreshing} pairsSwiperRef={pairsSwiperRef}/>
+            <Snackbar duration={5000} visible={snackBarVisible} style={styles.snackBarContainer}
+                      wrapperStyle={styles.snackBarWrapper} theme={{colors: {surface: Colors.black}}}
+                      onDismiss={snackBarDismiss}>{snackBarText}</Snackbar>
+            <StatusBar style="auto"/>
         </View>
-        <PairScrollView pairsData={pairsData} currentMonday={currentMonday} fetchPairsData={fetchPairsData}
-                        pairsRefreshing={pairsRefreshing} pairsSwiperRef={pairsSwiperRef}/>
-        <Snackbar duration={5000} visible={snackBarVisible} style={styles.snackBarContainer}
-                  wrapperStyle={styles.snackBarWrapper} theme={{colors: {surface : Colors.black}}}
-                  onDismiss={snackBarDismiss}>{snackBarText}</Snackbar>
-        <StatusBar style="auto"/>
-      </View>
-  )
+    )
 })
 
 async function logout(navigation) {
-  globals.authToken = null;
-  globals.userData = null;
+    globals.authToken = null;
+    globals.userData = null;
 
-  await EncryptedStorage.clear()
-  navigation.navigate("Login")
+    await EncryptedStorage.clear()
+    navigation.navigate("Login")
 }
 
 function DetailScreen() {
-  return (
-      <View style={styles.container}>
-        <Text>This is the details screen</Text>
-        {/*<StatusBar style="auto"/>*/}
-      </View>
-  )
+    return (
+        <View style={styles.container}>
+            <Text>This is the details screen</Text>
+            {/*<StatusBar style="auto"/>*/}
+        </View>
+    )
 }
 
 
 function AppWithTab() {
-  return (
-      <Tab.Navigator initialRouteName="Home" screenOptions={{headerShown: false}}>
-        <Tab.Screen name="Home" component={HomeWithHeader}/>
-        <Tab.Screen name="Details" component={DetailScreen}/>
-      </Tab.Navigator>
-  )
+    return (
+        <Tab.Navigator initialRouteName="Home" screenOptions={{headerShown: false}}>
+            <Tab.Screen name="Home" component={HomeWithHeader}/>
+            <Tab.Screen name="Details" component={DetailScreen}/>
+        </Tab.Navigator>
+    )
 }
 
 
 export function CheckLoginScreen() {
-  return (
-      <LoginStack.Navigator screenOptions={{headerShown: false}}>
-        <LoginStack.Screen name={"Login"}>
-          {props => <CheckLogin {...props}/>}
-        </LoginStack.Screen>
-        <LoginStack.Screen name={"AppWithTab"} component={AppWithTab}/>
-      </LoginStack.Navigator>
-  )
+    return (
+        <LoginStack.Navigator screenOptions={{headerShown: false}}>
+            <LoginStack.Screen name={"Login"}>
+                {props => <CheckLogin {...props}/>}
+            </LoginStack.Screen>
+            <LoginStack.Screen name={"AppWithTab"} component={AppWithTab}/>
+        </LoginStack.Navigator>
+    )
 }
 
 
@@ -226,73 +227,75 @@ const LoginStack = createNativeStackNavigator();
 
 
 function HomeHeader() {
-  return (
-      <View>
-        <Text style={styles.header}>Расписание</Text>
-      </View>
-  )
+    return (
+        <View>
+            <Text style={styles.header}>Расписание</Text>
+        </View>
+    )
 }
 
 function HomeSettings() {
-  const navigation = useNavigation()
+    const navigation = useNavigation()
 
-  return (
-      <View>
-        <IconButton icon={require("./assets/settings.png")} onPress={() => logout(navigation)}/>
-      </View>
-  )
+    return (
+        <View>
+            <IconButton icon={require("./assets/settings.png")} onPress={() => logout(navigation)}/>
+        </View>
+    )
 }
 
 function HomeWithHeader() {
-  return (
-      <Stack.Navigator mode={"modal"}>
-        <Stack.Screen name="Home" options={{headerLeft: ()=> null, headerCenter: HomeHeader,
-          headerRight: HomeSettings}}>
-          {props => <HomeScreen {...props}/>}
-        </Stack.Screen>
-        <Stack.Screen name={"PairView"} component={pairView}/>
-      </Stack.Navigator>
-  )
+    return (
+        <Stack.Navigator mode={"modal"}>
+            <Stack.Screen name="Home" options={{
+                headerLeft: () => null, headerCenter: HomeHeader,
+                headerRight: HomeSettings
+            }}>
+                {props => <HomeScreen {...props}/>}
+            </Stack.Screen>
+            <Stack.Screen name={"PairView"} component={pairView}/>
+        </Stack.Navigator>
+    )
 }
 
 
 export default function App() {
-  return (
-      <NavigationContainer>
-        <CheckLoginScreen/>
-        <StatusBar hidden/>
-        <FlashMessage position={"top"}/>
-      </NavigationContainer>
-  );
+    return (
+        <NavigationContainer>
+            <CheckLoginScreen/>
+            <StatusBar hidden/>
+            <FlashMessage position={"top"}/>
+        </NavigationContainer>
+    );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  snackBarWrapper: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  snackBarContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: Colors.grey300,
-    width: "75%"
-  },
-  header: {
-    fontWeight: 'bold',
-    fontSize: 18
-  },
-  weekInfoText: {
-    fontSize: 16,
-    minWidth: 225,
-    textAlign: 'center'
-  },
+    container: {
+        flex: 1,
+        backgroundColor: '#fff',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    snackBarWrapper: {
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    snackBarContainer: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        backgroundColor: Colors.grey300,
+        width: "75%"
+    },
+    header: {
+        fontWeight: 'bold',
+        fontSize: 18
+    },
+    weekInfoText: {
+        fontSize: 16,
+        minWidth: 225,
+        textAlign: 'center'
+    },
 
 });
 

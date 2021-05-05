@@ -14,6 +14,14 @@ export default {
 
     MONTH_NAMES: [
         "января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"
-    ]
+    ],
+
+    getMonday: (d) => {
+        d = new Date(d);
+        let day = d.getDay(),
+            diff = d.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
+        return new Date(d.setDate(diff));
+    }
+
 
 }
