@@ -55,7 +55,7 @@ export function CheckLogin(props) {
     }
 
     async function getUserData() {
-        return await EncryptedStorage.getItem("userData")
+        return JSON.parse(await EncryptedStorage.getItem("userData"))
     }
 
     function loginChanged(login) {

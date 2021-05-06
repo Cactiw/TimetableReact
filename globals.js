@@ -3,6 +3,11 @@ export default {
     authToken: null,
     userData: null,
 
+    OPERATOR_ROLE: 0,
+    TEACHER_ROLE: 1,
+    STUDENT_ROLE: 2,
+
+
     daysOfWeek: [
         0, 1, 2, 3, 4, 5, 6
     ],

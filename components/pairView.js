@@ -3,6 +3,7 @@ import React, {useEffect} from "react";
 import {Colors} from "react-native-paper";
 import {Divider} from "react-native-elements";
 import {FloatingAction} from "react-native-floating-action";
+import globals from "../globals";
 
 
 export function pairView({route, navigation}) {
@@ -46,7 +47,7 @@ export function pairView({route, navigation}) {
                 </View>
             </View>
 
-            <FloatingAction actions={actions}
+            {globals.userData.role === globals.TEACHER_ROLE && <FloatingAction actions={actions}
                             onPressItem={name => {
                                 console.log(`Pressed ${name}`)
                             }}
@@ -55,7 +56,7 @@ export function pairView({route, navigation}) {
                             animated={true}
                             distanceToEdge={{vertical: 30, horizontal: 20}}
                             // showBackground={false}
-            />
+            />}
         </View>
     )
 }

@@ -37,6 +37,13 @@ export default React.memo(({pairItem, index, currentDay}) => {
     if (change && !change["is_canceled"] && change["begin_clear_time"] === pairItem["begin_clear_time"]) {
         return null;
     }
+    let currentChange = false
+    if (pairItem["pair_to_change"]) {
+        currentChange = new Date(pairItem["change_date"]).getDate() === currentDay.getDate()
+        if (!currentChange) {
+            return null;
+        }
+    }
 
     const navigation = useNavigation()
 
@@ -55,7 +62,7 @@ export default React.memo(({pairItem, index, currentDay}) => {
             if (change["is_canceled"] || change["begin_clear_time"] !== pairItem["begin_clear_time"]) {
                 res.push(styles.red)
             }
-        } else if (pairItem["pair_to_change"] && new Date(pairItem["change_date"]).getDate() === currentDay.getDate()) {
+        } else if (currentChange) {
             res.push(styles.blue)
             // res.push(globalStyles.backgroundDark)
         } else {
@@ -76,7 +83,7 @@ export default React.memo(({pairItem, index, currentDay}) => {
                 shadowRadius: 2,
             }}
         >
-            <TouchableRipple borderless={true} onPress={e => onPairCellPress(e, pairItem)} >
+            <TouchableRipple borderless={true} onPress={e => onPairCellPress(e, pairItem)}>
                 <View style={styles.pairCell}>
                     <View style={styles.pairLeftContainer}>
                         <Text>{pairItem.begin_clear_time}</Text>
@@ -85,7 +92,14 @@ export default React.memo(({pairItem, index, currentDay}) => {
                     <Divider style={pairStyle()}/>
                     <View style={styles.pairCenterContainer}>
                         <Text style={styles.pairName}>{pairItem.subject}</Text>
-                        {pairItem.teacher && <Text>{pairItem.teacher ? pairItem.teacher.fullname : ""}</Text>}
+                        {
+                            globals.userData.role === globals.STUDENT_ROLE &&
+                            pairItem.teacher && <Text>{pairItem.teacher ? pairItem.teacher.fullname : ""}</Text>
+                        }
+                        {
+                            globals.userData.role === globals.TEACHER_ROLE &&
+                            pairItem.group && <Text>{pairItem.group.name}</Text>
+                        }
                     </View>
                     <View>
                         {pairItem.auditorium && <Text>{pairItem.auditorium ? pairItem.auditorium.name : ""}</Text>}
