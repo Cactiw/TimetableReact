@@ -3,6 +3,8 @@ import {Colors, TouchableRipple} from "react-native-paper";
 import {StyleSheet, Text, View} from "react-native";
 import {Divider} from "react-native-elements";
 import React from "react";
+import {useNavigation} from "@react-navigation/native";
+import globals from "../../globals";
 
 let _ = require('lodash');
 
@@ -26,6 +28,15 @@ export default React.memo(({pairItem, index, currentDay}) => {
         currentChanges = changes.filter(changeItem => {
             const dif = dateDiffInDays(new Date(changeItem["change_date"]), currentDay)
             return Math.abs(dif) < 2
+        })
+    }
+
+    const navigation = useNavigation()
+
+    function onPairCellPress(event, item) {
+        navigation.navigate('PairView', {
+            pairItem: item,
+            pairDate: currentDay.getDate() + " " + globals.MONTH_NAMES[currentDay.getMonth()]
         })
     }
 
@@ -75,7 +86,8 @@ export default React.memo(({pairItem, index, currentDay}) => {
         </DropShadow>
     )
 }, (oldState, newState) => {
-    return _.isEqual(oldState.pairItem, newState.pairItem) && oldState.currentDay === newState.currentDay
+    return _.isEqual(oldState.pairItem, newState.pairItem) &&
+        oldState.currentDay.getDate() === newState.currentDay.getDate()
 })
 
 

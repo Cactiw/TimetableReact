@@ -17,16 +17,6 @@ export default React.memo(({item, index, pairsData, startOffset, modOffset, curr
     let currentDay = today.addDays(changeDays).addDays(-(today.getDay() - 1))
     let dayOfWeek = (changeDays + modOffset) % globals.daysOfWeek.length
 
-    const navigation = useNavigation()
-
-    function onPairCellPress(event, item) {
-        const pairDate = currentMonday.addDays(item["day_of_week"])
-        navigation.navigate('PairView', {
-            pairItem: item,
-            pairDate: pairDate.getDate() + " " + globals.MONTH_NAMES[pairDate.getMonth()]
-        })
-    }
-
 
     return (
         <View style={styles.pairsPane}>
