@@ -5,6 +5,7 @@ import {Divider} from "react-native-elements";
 import React from "react";
 import {useNavigation} from "@react-navigation/native";
 import globals from "../../globals";
+import {globalStyles} from "../../styles/global";
 
 let _ = require('lodash');
 
@@ -24,11 +25,17 @@ export default React.memo(({pairItem, index, currentDay}) => {
     let endDate = new Date(pairItem.end_time);
     let changes = pairItem.changes
     let currentChanges = [null]
+    let change = null;
     if (changes) {
         currentChanges = changes.filter(changeItem => {
             const dif = dateDiffInDays(new Date(changeItem["change_date"]), currentDay)
             return Math.abs(dif) < 2
         })
+        change = currentChanges.length > 0 ? currentChanges[currentChanges.length - 1] : null
+    }
+
+    if (change && !change["is_canceled"] && change["begin_clear_time"] === pairItem["begin_clear_time"]) {
+        return null;
     }
 
     const navigation = useNavigation()
@@ -45,10 +52,12 @@ export default React.memo(({pairItem, index, currentDay}) => {
             styles.pairCellDivider
         ]
         if (currentChanges.length > 0) {
-            let change = currentChanges[currentChanges.length - 1]
-            if (change["is_canceled"]) {
+            if (change["is_canceled"] || change["begin_clear_time"] !== pairItem["begin_clear_time"]) {
                 res.push(styles.red)
             }
+        } else if (pairItem["pair_to_change"] && new Date(pairItem["change_date"]).getDate() === currentDay.getDate()) {
+            res.push(styles.blue)
+            // res.push(globalStyles.backgroundDark)
         } else {
             res.push(styles.black)
         }
@@ -132,6 +141,10 @@ const styles = StyleSheet.create({
     red: {
         // backgroundColor: 'rgba(255, 0, 102, 1)'
         backgroundColor: 'rgba(255, 0, 0, 0.8)'
+    },
+    blue: {
+        // backgroundColor: 'rgb(61,0,119)'
+        backgroundColor: 'rgb(0,116,191)'
     },
     pairName: {
         fontWeight: 'bold',
