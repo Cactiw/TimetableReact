@@ -106,7 +106,9 @@ const HomeScreen = memo(function HomeScreen(props) {
             let pairsByDayData = {}
             for (let dayIndex in globals.daysOfWeek) {
                 pairsByDayData[dayIndex] = json.filter(pair => pair["day_of_week"].toString() === dayIndex.toString()).sort(
-                    (p1, p2) => p1.begin_clear_time > p2.begin_clear_time
+                    (p1, p2) => {
+                        return p1.begin_clear_time > p2.begin_clear_time ? 1 : -1
+                    }
                 )
             }
             setPairsData(pairsByDayData)
