@@ -6,7 +6,7 @@
  * @flow strict-local
  */
 
-import React, {createRef, memo, useCallback, useMemo, useRef} from 'react';
+import React, {createRef, memo, useCallback, useContext, useMemo, useRef} from 'react';
 import {StyleSheet, Text, View, FlatList, Button, Image, Pressable, StatusBar} from 'react-native';
 import {NavigationContainer, useRoute, useNavigation} from '@react-navigation/native';
 import {Divider} from 'react-native-elements';
@@ -29,6 +29,7 @@ import {globalStyles} from "./styles/global"
 import {pairView} from "./components/pairView"
 import {CheckLogin} from "./components/login"
 import globals from "./globals";
+import {MyContext} from "./context"
 import FlashMessage from "react-native-flash-message";
 import EncryptedStorage from "react-native-encrypted-storage";
 import PairScrollView from "./components/views/PairScrollView";
@@ -51,7 +52,7 @@ const HomeScreen = memo(function HomeScreen(props) {
     const [currentMonday, setCurrentMonday] = useState(globals.getMonday(new Date()));
     const [snackBarVisible, setSnackBarVisible] = useState(false);
     const [snackBarText, setSnackBarText] = useState("");
-    const [pairsRefreshing, setPairsRefreshing] = useState(false);
+    let context = useContext(MyContext)
 
     console.log("Rendering HomeScreen!", currentMonday)
 
@@ -82,13 +83,11 @@ const HomeScreen = memo(function HomeScreen(props) {
 
     function fetchPairsData(setRefresh) {
         if (setRefresh) {
-            setPairsRefreshing(true)
+            setRefresh(true)
         }
         console.log("Fetching pairs data!")
         fetch(serverURL + 'pairs/timetable', {
-            headers: {
-                'Authorization': 'Bearer ' + globals.authToken
-            }
+            headers: globals.getAuthorization()
         }).then(
             (response) => {
                 if (response.ok) {
@@ -119,9 +118,15 @@ const HomeScreen = memo(function HomeScreen(props) {
             setSnackBarVisible(true)
             console.error(error)
         }).finally(() => {
-                setPairsRefreshing(false)
+                if (setRefresh) {
+                    setRefresh(false)
+                }
             }
         )
+    }
+
+    if (!context["fetchPairsData"]) {
+        context["fetchPairsData"] = fetchPairsData
     }
 
     function snackBarDismiss() {
@@ -171,8 +176,7 @@ const HomeScreen = memo(function HomeScreen(props) {
             </View>
             <PairScrollView pairsData={pairsData} currentMonday={currentMonday}
                             onCurrentMondayChanged={onCurrentMondayChanged}
-                            fetchPairsData={fetchPairsData}
-                            pairsRefreshing={pairsRefreshing} pairsSwiperRef={pairsSwiperRef}/>
+                            pairsSwiperRef={pairsSwiperRef}/>
             <Snackbar duration={5000} visible={snackBarVisible} style={styles.snackBarContainer}
                       wrapperStyle={styles.snackBarWrapper} theme={{colors: {surface: Colors.black}}}
                       onDismiss={snackBarDismiss}>{snackBarText}</Snackbar>
@@ -201,17 +205,18 @@ function DetailScreen() {
 
 function AppWithTab() {
     return (
-        <Tab.Navigator barStyle={globalStyles.backgroundDark} initialRouteName="MainScreen" screenOptions={{headerShown: false}}>
+        <Tab.Navigator barStyle={globalStyles.backgroundDark} initialRouteName="MainScreen"
+                       screenOptions={{headerShown: false}}>
             <Tab.Screen name="MainScreen" component={HomeWithHeader} options={{
                 tabBarLabel: "Расписание",
-                tabBarIcon: ({ tintColor }) => (
+                tabBarIcon: ({tintColor}) => (
                     <Image source={require('./assets/classes.png')} height={"1"}/>
                 )
 
             }}/>
             <Tab.Screen name="Details" component={DetailScreen} options={{
                 tabBarLabel: "Профиль",
-                tabBarIcon: ({ tintColor }) => (
+                tabBarIcon: ({tintColor}) => (
                     <Image source={require('./assets/profile.png')} resizeMode={"stretch"} width={"5%"}/>
                 )
             }}/>
@@ -273,9 +278,11 @@ function HomeWithHeader() {
 export default function App() {
     return (
         <NavigationContainer>
-            <CheckLoginScreen/>
-            <StatusBar hidden/>
-            <FlashMessage position={"top"}/>
+            <MyContext.Provider value={{}}>
+                <CheckLoginScreen/>
+                <StatusBar hidden/>
+                <FlashMessage position={"top"}/>
+            </MyContext.Provider>
         </NavigationContainer>
     );
 }

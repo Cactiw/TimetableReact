@@ -1,3 +1,4 @@
+import React from "react"
 
 export default {
     authToken: null,
@@ -26,7 +27,16 @@ export default {
         let day = d.getDay(),
             diff = d.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
         return new Date(d.setDate(diff));
-    }
+    },
+
+    getAuthorization() {
+        return {
+            'Authorization': 'Bearer ' + this.authToken,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        }
+    },
+
 
 
 }

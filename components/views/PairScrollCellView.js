@@ -52,7 +52,7 @@ export default React.memo(({pairItem, index, currentDay}) => {
     function onPairCellPress(event, item) {
         navigation.navigate('PairView', {
             pairItem: item,
-            pairDate: currentDay.getDate() + " " + globals.MONTH_NAMES[currentDay.getMonth()],
+            pairDateString: currentDay.toString(),
             canceled: canceled,
             moved: moved
         })

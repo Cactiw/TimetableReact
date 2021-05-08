@@ -1,21 +1,26 @@
 import {FlatList, Text, View, StyleSheet} from "react-native";
-import React, {useState} from "react";
+import React, {useContext, useState} from "react";
 import globals from "../../globals";
 import {Colors, TouchableRipple} from "react-native-paper";
 import DropShadow from "react-native-drop-shadow";
 import {Divider} from "react-native-elements";
 import {useNavigation} from "@react-navigation/native";
 import PairScrollCellView from "./PairScrollCellView";
+import {MyContext} from "../../context";
+
+let _ = require('lodash');
 
 
-
-export default React.memo(({item, index, pairsData, startOffset, modOffset, currentMonday,
-                               fetchPairsData, pairsRefreshing}) => {
+export default React.memo(({item, index, pairsData, startOffset, modOffset, currentMonday}) => {
     console.log("Rendering pane", index)
+    const [pairsRefreshing, setPairsRefreshing] = useState(false);
+    const context = useContext(MyContext)
     let changeDays = (item - startOffset)
     const today = new Date()
     let currentDay = today.addDays(changeDays).addDays(-(today.getDay() - 1))
     let dayOfWeek = (changeDays + modOffset) % globals.daysOfWeek.length
+
+    const data = pairsData[dayOfWeek]
 
 
     return (
@@ -25,18 +30,23 @@ export default React.memo(({item, index, pairsData, startOffset, modOffset, curr
                     `${globals.DAY_NAMES[dayOfWeek]}, ${currentDay.getDate()} ${globals.MONTH_NAMES[currentDay.getMonth()]}`}</Text>
             </View>
             <FlatList
-                data={pairsData[dayOfWeek]}
+                data={data}
                 keyExtractor={({id}, index) => id.toString()}
                 renderItem={({item}) => (
                     <PairScrollCellView pairItem={item} index={index} currentDay={currentDay}/>
                 )}
                 onRefresh={ () => {
-                    fetchPairsData()
+                    console.log("Context", context)
+                    context.fetchPairsData(setPairsRefreshing)
                 }}
                 refreshing={pairsRefreshing}
             />
         </View>
     )
+}, (oldState, newState) => {
+    let changeDays = (newState.item - newState.startOffset)
+    let dayOfWeek = (changeDays + newState.modOffset) % globals.daysOfWeek.length
+    return oldState.item === newState.item && _.isEqual(oldState.pairsData[dayOfWeek], newState.pairsData[dayOfWeek])
 })
 
 const styles = StyleSheet.create({

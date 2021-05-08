@@ -24,7 +24,7 @@ const neverChange = true;
 
 export default React.memo(({
                                pairsData, currentMonday, onCurrentMondayChanged,
-                               fetchPairsData, pairsRefreshing, pairsSwiperRef
+                               pairsRefreshing, pairsSwiperRef
                            }) => {
         console.log("Rendering view")
 
@@ -72,7 +72,7 @@ export default React.memo(({
         return (
             <SwipeRender ref={pairsSwiperRef} data={daysToRender} extraData={pairsData} renderItem={
                 (props) => <PairScrollPaneView pairsData={pairsData} currentMonday={currentMonday}
-                                               fetchPairsData={fetchPairsData} pairsRefreshing={pairsRefreshing}
+                                               pairsRefreshing={pairsRefreshing}
                                                startOffset={startOffset}
                                                modOffset={modOffset} item={props.item} index={props.index}/>
             }

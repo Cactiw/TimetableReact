@@ -1,15 +1,26 @@
-import {ImageBackground, StyleSheet, Text, View} from "react-native";
-import React, {useEffect} from "react";
+import {Alert, ImageBackground, StyleSheet, Text, View} from "react-native";
+import React, {useContext, useEffect, useState} from "react";
 import {Colors} from "react-native-paper";
 import {Divider} from "react-native-elements";
 import {FloatingAction} from "react-native-floating-action";
 import globals from "../globals";
+import {MyContext} from "../context"
+
+
+import Spinner from 'react-native-loading-spinner-overlay';
+import {serverURL} from "../config";
 
 
 export function pairView({route, navigation}) {
-    const {pairItem, pairDate, canceled, moved} = route.params
+    let {pairItem, pairDateString, canceled, moved} = route.params
+    const context = useContext(MyContext)
+    console.log("Context", context)
+    const [spinnerVisible, setSpinnerVisible] = useState(false)
+    const [isCanceled, setIsCanceled] = useState(canceled)
+    let pairDate = new Date(pairDateString)
+    let pairDateStr = pairDate.getDate() + " " + globals.MONTH_NAMES[pairDate.getMonth()]
     useEffect(() => {
-        if (canceled) {
+        if (isCanceled) {
             navigation.setOptions({
                 headerTintColor: Colors.white,
                 title: "Отменена",
@@ -34,12 +45,53 @@ export function pairView({route, navigation}) {
             })
         } else {
             navigation.setOptions({
-                // title: pairDate,
+                // title: pairDateStr,
                 title: '',
+                headerStyle: {
+                    backgroundColor: Colors.white
+                },
+                headerTintColor: Colors.blue600
 
             })
         }
     })
+
+    async function cancelPair() {
+        setSpinnerVisible(true)
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 10000)
+        console.log(serverURL + 'pairs/cancel')
+        let sendDateString = new Date(pairDate.getTime() - (pairDate.getTimezoneOffset() * 60000 ))
+            .toISOString()
+            .split("T")[0];
+        fetch(serverURL + 'pairs/cancel', {
+            method: "POST",
+            signal: controller.signal,
+            headers: globals.getAuthorization(),
+            body: JSON.stringify({
+                'pair_id': pairItem.id,
+                'pair_date': sendDateString
+            })
+        }).then(result => {
+            console.log(result)
+                clearTimeout(timeoutId)
+                if (!result.ok) {
+                    throw result.status
+                }
+                return result.json()
+            }
+        ).then(json => {
+            console.log(json)
+            setIsCanceled(!isCanceled)
+            context.fetchPairsData(setSpinnerVisible)
+        })
+            .catch(e => {
+                Alert.alert("Ошибка.", "Произошла ошибка при отмене занятия\n" + e,
+                    [{text: "Ок.", onPress: () => console.log("Cancel Pressed")}])
+                console.error(e)
+                setSpinnerVisible(false)
+            })
+    }
 
     return (
         <View style={styles.container}>
@@ -50,7 +102,7 @@ export function pairView({route, navigation}) {
                             <View style={styles.pairHeaderTimeContainer}>
                                 <Text
                                     style={[styles.pairTime, styles.pairHeaderHorizontalMargin]}>{pairItem.begin_clear_time} — {pairItem.end_clear_time}</Text>
-                                <Text style={[styles.pairHeaderDate, styles.pairHeaderHorizontalMargin]}>{pairDate}</Text>
+                                <Text style={[styles.pairHeaderDate, styles.pairHeaderHorizontalMargin]}>{pairDateStr}</Text>
                             </View>
                             <Text
                                 style={[styles.pairHeaderType, styles.pairHeaderMargin]}>{pairItem.group.type.name}</Text>
@@ -77,9 +129,15 @@ export function pairView({route, navigation}) {
                 </View>
             </View>
 
-            {globals.userData.role === globals.TEACHER_ROLE && <FloatingAction actions={actions}
+            {globals.userData.role === globals.TEACHER_ROLE &&
+            <FloatingAction actions={actions}
                             onPressItem={name => {
+                                if (name === 'pair_action_cancel') {
+                                    return cancelPair()
+                                }
+                                setSpinnerVisible(true)
                                 console.log(`Pressed ${name}`)
+                                setTimeout(() => setSpinnerVisible(false), 4000)
                             }}
                             floatingIcon={require("../assets/edit.png")}
                             iconHeight={20}
@@ -87,6 +145,8 @@ export function pairView({route, navigation}) {
                             distanceToEdge={{vertical: 30, horizontal: 20}}
                             // showBackground={false}
             />}
+
+            <Spinner visible={spinnerVisible}/>
         </View>
     )
 }
