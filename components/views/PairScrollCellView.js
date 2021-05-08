@@ -33,6 +33,7 @@ export default React.memo(({pairItem, index, currentDay}) => {
         })
         change = currentChanges.length > 0 ? currentChanges[currentChanges.length - 1] : null
     }
+    let canceled = change && (change["is_canceled"] || change["begin_clear_time"] !== pairItem["begin_clear_time"])
 
     if (change && !change["is_canceled"] && change["begin_clear_time"] === pairItem["begin_clear_time"]) {
         return null;
@@ -44,13 +45,16 @@ export default React.memo(({pairItem, index, currentDay}) => {
             return null;
         }
     }
+    let moved = !canceled && currentChange
 
     const navigation = useNavigation()
 
     function onPairCellPress(event, item) {
         navigation.navigate('PairView', {
             pairItem: item,
-            pairDate: currentDay.getDate() + " " + globals.MONTH_NAMES[currentDay.getMonth()]
+            pairDate: currentDay.getDate() + " " + globals.MONTH_NAMES[currentDay.getMonth()],
+            canceled: canceled,
+            moved: moved
         })
     }
 
@@ -59,10 +63,10 @@ export default React.memo(({pairItem, index, currentDay}) => {
             styles.pairCellDivider
         ]
         if (currentChanges.length > 0) {
-            if (change["is_canceled"] || change["begin_clear_time"] !== pairItem["begin_clear_time"]) {
+            if (canceled) {
                 res.push(styles.red)
             }
-        } else if (currentChange) {
+        } else if (moved) {
             res.push(styles.blue)
             // res.push(globalStyles.backgroundDark)
         } else {

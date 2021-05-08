@@ -99,14 +99,14 @@ export function CheckLogin(props) {
                 showMessage({message: "Неверные имя пользователя или пароль.", type: "danger"})
             } else if (!response.ok) {
                 console.log("Showing message!")
-                showMessage({message: "Ошибка при авторизации." + response.toString(), type: "danger"})
+                showMessage({message: "Ошибка при авторизации.", type: "danger"})
             } else {
                 showMessage({message: "Успешная авторизация!", type: "success"})
                 return saveLoginData(response)
             }
         }).catch(e => {
             console.error(e)
-            showMessage({message: "Ошибка при авторизации." + e.toString(), type: "danger"})
+            showMessage({message: "Ошибка при авторизации.", type: "danger"})
         }).finally(() =>
             setSpinnerVisibility(false)
         )

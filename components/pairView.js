@@ -7,11 +7,38 @@ import globals from "../globals";
 
 
 export function pairView({route, navigation}) {
-    const {pairItem, pairDate} = route.params
+    const {pairItem, pairDate, canceled, moved} = route.params
     useEffect(() => {
-        navigation.setOptions({
-            title: pairDate
-        })
+        if (canceled) {
+            navigation.setOptions({
+                headerTintColor: Colors.white,
+                title: "Отменена",
+                headerStyle: {
+                    // backgroundColor: 'rgba(255,78,78,1)',
+                    backgroundColor: 'rgb(243,99,99)',
+                }, headerTitleStyle: {
+                    color: Colors.white
+                }
+            })
+        }
+        else if (moved) {
+            navigation.setOptions({
+                headerTintColor: Colors.white,
+                title: "Перенесена",
+                headerStyle: {
+                    // backgroundColor: 'rgba(255,78,78,1)',
+                    backgroundColor: 'rgb(99,169,243)',
+                }, headerTitleStyle: {
+                    color: Colors.white
+                }
+            })
+        } else {
+            navigation.setOptions({
+                // title: pairDate,
+                title: '',
+
+            })
+        }
     })
 
     return (
@@ -20,8 +47,11 @@ export function pairView({route, navigation}) {
                 <View style={styles.pairHeader}>
                     <ImageBackground source={require("../assets/copybook_1.jpg")} style={styles.image}>
                         <View style={styles.pairHeaderContainer}>
-                            <Text
-                                style={[styles.pairTime, styles.pairHeaderMargin]}>{pairItem.begin_clear_time} — {pairItem.end_clear_time}</Text>
+                            <View style={styles.pairHeaderTimeContainer}>
+                                <Text
+                                    style={[styles.pairTime, styles.pairHeaderHorizontalMargin]}>{pairItem.begin_clear_time} — {pairItem.end_clear_time}</Text>
+                                <Text style={[styles.pairHeaderDate, styles.pairHeaderHorizontalMargin]}>{pairDate}</Text>
+                            </View>
                             <Text
                                 style={[styles.pairHeaderType, styles.pairHeaderMargin]}>{pairItem.group.type.name}</Text>
                             <Text style={[styles.pairHeaderSubject, styles.pairHeaderMargin]}>{pairItem.subject}</Text>
@@ -94,6 +124,9 @@ const styles = StyleSheet.create({
     pairHeaderMargin: {
         margin: 10
     },
+    pairHeaderHorizontalMargin: {
+        marginHorizontal: 10,
+    },
     pairHeaderSubject: {
         color: Colors.white,
         fontWeight: "bold",
@@ -115,7 +148,17 @@ const styles = StyleSheet.create({
         fontSize: 28,
         fontWeight: "bold",
         color: Colors.white,
+        marginTop: 10
     },
+    pairHeaderDate: {
+        color: Colors.white,
+        fontWeight: "bold",
+        fontSize: 18,
+        flexWrap: 'wrap',
+        width: "65%",
+        marginBottom: 10,
+    },
+
 
     pairDetailsItem: {
         margin: 10,
