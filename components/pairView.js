@@ -8,15 +8,19 @@ import {MyContext} from "../context"
 
 
 import Spinner from 'react-native-loading-spinner-overlay';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import {serverURL} from "../config";
 
 
 export function pairView({route, navigation}) {
     let {pairItem, pairDateString, canceled, moved} = route.params
     const context = useContext(MyContext)
-    console.log("Context", context)
     const [spinnerVisible, setSpinnerVisible] = useState(false)
     const [isCanceled, setIsCanceled] = useState(canceled)
+    const [showDatepicker, setShowDatepicker] = useState(false)
+    const [datepickerMode, setDatepickerMode] = useState('date')
+    const [scheduleDate, setScheduleDate] = useState(new Date(pairItem.begin_time))
+
     let pairDate = new Date(pairDateString)
     let pairDateStr = pairDate.getDate() + " " + globals.MONTH_NAMES[pairDate.getMonth()]
     useEffect(() => {
@@ -93,6 +97,80 @@ export function pairView({route, navigation}) {
             })
     }
 
+    async function schedulePairAction() {
+        setShowDatepicker(true)
+
+    }
+
+    async function schedulePair(selectedDate) {
+        setSpinnerVisible(true)
+
+        let sendDateString = new Date(pairDate.getTime() - (pairDate.getTimezoneOffset() * 60000 ))
+            .toISOString()
+            .split("T")[0];
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 10000)
+        console.log({
+            'request_pair_id': pairItem.id,
+            'change_date': sendDateString,
+            'new_begin_time': selectedDate,
+            'new_end_time': new Date(selectedDate.getTime() + (new Date(pairItem.end_time) - new Date(pairItem.begin_time)))
+        })
+        fetch(serverURL + 'requests/create', {
+            method: "POST",
+            signal: controller.signal,
+            headers: globals.getAuthorization(),
+            body: JSON.stringify({
+                'request_pair_id': pairItem.id,
+                'change_date': sendDateString,
+                'new_begin_time': selectedDate,
+                'new_end_time': new Date(selectedDate.getTime() + (new Date(pairItem.end_time) - new Date(pairItem.begin_time)))
+            })
+        }).then(result => {
+                console.log(result)
+                clearTimeout(timeoutId)
+                if (!result.ok) {
+                    throw result.status
+                }
+                return result.json()
+            }
+        ).then(json => {
+            console.log(json)
+            setIsCanceled(true)
+            context.fetchPairsData(setSpinnerVisible)
+        })
+            .catch(e => {
+                Alert.alert("Ошибка.", "Произошла ошибка при переносе занятия\n" + e,
+                    [{text: "Ок.", onPress: () => console.log("Cancel Pressed")}])
+                console.error(e)
+                setSpinnerVisible(false)
+            })
+        setSpinnerVisible(false)
+    }
+
+    async function onDatepickerChange(event, selectedDate) {
+        console.log(event)
+        if (event.type === "dismissed") {
+            setShowDatepicker(false)
+            setDatepickerMode("date")
+            return
+        }
+        setShowDatepicker(false)
+        if (datepickerMode === "date") {
+            setDatepickerMode("time")
+            setShowDatepicker(true)
+        } else {
+            setScheduleDate(selectedDate);
+            setDatepickerMode("date")
+
+            console.log("Selected date")
+            console.log(selectedDate)
+
+            return await schedulePair(selectedDate)
+        }
+        // setShowDatepicker(Platform.OS === 'ios');
+    }
+
     return (
         <View style={styles.container}>
             <View style={styles.pairView}>
@@ -129,11 +207,25 @@ export function pairView({route, navigation}) {
                 </View>
             </View>
 
+            {showDatepicker && (
+                <DateTimePicker
+                    testID="dateTimePicker"
+                    value={scheduleDate}
+                    mode={datepickerMode}
+                    is24Hour={true}
+                    display="default"
+                    onChange={onDatepickerChange}
+                    timeZoneOffsetInMinutes={0}
+                />
+            )}
+
             {globals.userData.role === globals.TEACHER_ROLE &&
             <FloatingAction actions={actions}
                             onPressItem={name => {
                                 if (name === 'pair_action_cancel') {
                                     return cancelPair()
+                                } else if (name === 'pair_action_schedule') {
+                                    return schedulePairAction()
                                 }
                                 setSpinnerVisible(true)
                                 console.log(`Pressed ${name}`)
