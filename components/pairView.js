@@ -192,7 +192,10 @@ export function pairView({route, navigation}) {
                     <View style={styles.pairDetailsItem}>
                         <Text style={styles.pairDetailsHeader}>Аудитория</Text>
                         <Text
-                            style={styles.pairDetailsText}>{pairItem.auditorium ? pairItem.auditorium.name : "—"}</Text>
+                            style={styles.pairDetailsText}>{
+                                pairItem.is_online ? "Дист." :
+                                pairItem.auditorium ? pairItem.auditorium.name : "—"
+                            }</Text>
                     </View>
                     <Divider/>
                     <View style={styles.pairDetailsItem}>

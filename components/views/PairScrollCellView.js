@@ -106,7 +106,11 @@ export default React.memo(({pairItem, index, currentDay}) => {
                         }
                     </View>
                     <View>
-                        {pairItem.auditorium && <Text>{pairItem.auditorium ? pairItem.auditorium.name : ""}</Text>}
+                        {
+                            (pairItem.auditorium || pairItem.is_online) && <Text>{
+                                pairItem.is_online ? "Дист." :
+                            pairItem.auditorium ? pairItem.auditorium.name : ""
+                        }</Text>}
                     </View>
                 </View>
             </TouchableRipple>
