@@ -17,6 +17,7 @@ export function pairView({route, navigation}) {
     const context = useContext(MyContext)
     const [spinnerVisible, setSpinnerVisible] = useState(false)
     const [isCanceled, setIsCanceled] = useState(canceled)
+    const [isMoved, setIsMoved] = useState(moved)
     const [showDatepicker, setShowDatepicker] = useState(false)
     const [datepickerMode, setDatepickerMode] = useState('date')
     const [scheduleDate, setScheduleDate] = useState(new Date(pairItem.begin_time))
@@ -45,7 +46,7 @@ export function pairView({route, navigation}) {
                 }
             })
         }
-        else if (moved) {
+        else if (isMoved) {
             navigation.setOptions({
                 headerTintColor: Colors.white,
                 title: "Перенесена",
@@ -144,6 +145,7 @@ export function pairView({route, navigation}) {
             console.log(json)
             pairItem.auditorium = null
             pairItem.is_online = true
+            setIsMoved(true)
             context.fetchPairsData(setSpinnerVisible)
         })
             .catch(e => {
