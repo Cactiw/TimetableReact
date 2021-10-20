@@ -21,6 +21,15 @@ export function pairView({route, navigation}) {
     const [datepickerMode, setDatepickerMode] = useState('date')
     const [scheduleDate, setScheduleDate] = useState(new Date(pairItem.begin_time))
 
+    if (pairItem.auditorium && actions.length < 3) {
+        actions.push(
+        {
+            text: "Сделать дистанционной",
+            icon: require("../assets/computer.png"),
+            name: "pair_action_online",
+        })
+    }
+
     let pairDate = new Date(pairDateString)
     let pairDateStr = pairDate.getDate() + " " + globals.MONTH_NAMES[pairDate.getMonth()]
     useEffect(() => {
@@ -91,6 +100,54 @@ export function pairView({route, navigation}) {
         })
             .catch(e => {
                 Alert.alert("Ошибка.", "Произошла ошибка при отмене занятия\n" + e,
+                    [{text: "Ок.", onPress: () => console.log("Cancel Pressed")}])
+                console.error(e)
+                setSpinnerVisible(false)
+            })
+    }
+
+    function setPairOnlineAction() {
+        Alert.alert("Подтвердите.", "Вы действительно хотите сделать это занятие дистанционным?\n" +
+            "Только диспетчер сможет отменить это действие.", [
+                {text: "Отменить", onPress: () => {}, style: 'cancel'},
+                {text: "Подтвердить", onPress: () => {
+                    setPairOnline().then()
+            }},
+        ])
+    }
+
+    async function setPairOnline() {
+        setSpinnerVisible(true)
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 10000)
+        console.log(serverURL + 'pairs/makeOnline')
+        let sendDateString = new Date(pairDate.getTime() - (pairDate.getTimezoneOffset() * 60000 ))
+            .toISOString()
+            .split("T")[0];
+        fetch(serverURL + 'pairs/makeOnline', {
+            method: "POST",
+            signal: controller.signal,
+            headers: globals.getAuthorization(),
+            body: JSON.stringify({
+                'pair_id': pairItem.id,
+                'pair_date': sendDateString
+            })
+        }).then(result => {
+                console.log(result)
+                clearTimeout(timeoutId)
+                if (!result.ok) {
+                    throw result.status
+                }
+                return result.json()
+            }
+        ).then(json => {
+            console.log(json)
+            pairItem.auditorium = null
+            pairItem.is_online = true
+            context.fetchPairsData(setSpinnerVisible)
+        })
+            .catch(e => {
+                Alert.alert("Ошибка.", "Произошла ошибка при переносе занятия\n" + e,
                     [{text: "Ок.", onPress: () => console.log("Cancel Pressed")}])
                 console.error(e)
                 setSpinnerVisible(false)
@@ -229,6 +286,8 @@ export function pairView({route, navigation}) {
                                     return cancelPair()
                                 } else if (name === 'pair_action_schedule') {
                                     return schedulePairAction()
+                                } else if (name === 'pair_action_online') {
+                                    return setPairOnlineAction()
                                 }
                                 setSpinnerVisible(true)
                                 console.log(`Pressed ${name}`)
@@ -259,7 +318,7 @@ const actions = [
         icon: require("../assets/cancel.png"),
         name: "pair_action_cancel",
         position: 2,
-    },
+    }
 ]
 
 const styles = StyleSheet.create({
